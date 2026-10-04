@@ -35,6 +35,8 @@ jobs:
           tar -xzf /tmp/ai-creative-os-source.tar.gz -C .
           rm -rf .bootstrap
           rm -f apps/web/tsconfig.tsbuildinfo
+          # The Actions token cannot add workflow files; CI is added separately after source import.
+          rm -f .github/workflows/ci.yml
 
           # Safety: never commit runtime secrets.
           find . -maxdepth 4 -type f \( -name ".env" -o -name ".env.local" -o -name ".env.production" -o -name ".env.development" \) -delete
@@ -56,3 +58,5 @@ jobs:
 # retrigger after bootstrap upload
 
 # retry after repaired part 5
+
+# retry without embedded ci workflow
