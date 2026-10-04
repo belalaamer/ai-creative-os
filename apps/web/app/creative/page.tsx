@@ -39,22 +39,151 @@ export default function CreativePage(){
   async function assemble(){if(!storyboard?.length||!projectId)return;setAssemblyBusy(true);setError('');try{const token=await authToken();const scenes=storyboard.map(sc=>({scene:sc.scene,durationSeconds:sc.durationSeconds,onScreenText:sc.onScreenText,image:assets[sc.scene]?{url:assets[sc.scene].imageUrl,storagePath:assets[sc.scene].storagePath}:null,voice:voices[sc.scene]?{url:voices[sc.scene].audioUrl,storagePath:voices[sc.scene].storagePath}:null,video:videos[sc.scene]?{url:videos[sc.scene].videoUrl,storagePath:videos[sc.scene].storagePath,mode:videos[sc.scene].mode,posterUrl:videos[sc.scene].posterUrl}:null}));const r=await fetch('/api/assemble-video',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({projectId,scenes,locale,quality})});const json=await r.json();if(!r.ok)throw new Error(json.error||'Assembly failed');setFinalAsset(json);if(json.status==='processing'&&json.jobId)await pollAssembly(json.jobId);}catch(e){setError(message(e));}finally{setAssemblyBusy(false)}}
   const allProductionReady=!!storyboard?.length&&storyboard.every(sc=>voices[sc.scene]&&videos[sc.scene]?.status==='succeeded');
 
-  return <AppShell><div className="creative-workspace">
-    <section className="mx-auto max-w-4xl"><div className="flex items-center gap-2 text-violet-300"><Sparkles size={18}/><span>AI Creative OS</span></div><h1 className="mt-3 text-4xl font-black md:text-5xl">{t('briefTitle')}</h1><p className="mt-3 text-zinc-500">{t('briefSubtitle')}</p><div className="card mt-7 p-3"><textarea className="min-h-36 w-full resize-none bg-transparent p-4 text-lg outline-none" value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder={t('promptPlaceholder')}/><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><label className="text-xs font-bold uppercase tracking-wider text-zinc-500">{t('qualityLabel')}</label><div className="mt-2 flex gap-2">{(['fast','quality','ultra'] as const).map(q=><button key={q} type="button" onClick={()=>setQuality(q)} className={`rounded-xl border px-3 py-2 text-sm ${quality===q?'border-violet-500 bg-violet-500/15 text-violet-200':'border-zinc-800 text-zinc-400'}`}>{q==='fast'?t('qualityFast'):q==='ultra'?t('qualityUltra'):t('qualityQuality')}</button>)}</div><div className="mt-2 text-xs text-zinc-600">{t('qualityHint')}</div></div><button onClick={run} disabled={busy||!prompt.trim()} className="btn btn-primary">{busy?t('analyzing'):t('runBrief')}</button></div></div>{error&&<div className="mt-4 rounded-xl border border-red-900/50 bg-red-950/30 p-3 text-red-300">{error}</div>}</section>
+  const stage = storyboard ? 3 : variants.length ? 2 : brief ? 1 : 0;
+  const ar = locale === 'ar';
+  const stages = ar
+    ? ['الطلب', 'الاستراتيجية', 'النسخ', 'الإنتاج']
+    : ['Prompt', 'Strategy', 'Variants', 'Production'];
 
-    {brief&&<section className="mt-10 grid gap-5 lg:grid-cols-3"><div className="card p-6 lg:col-span-2"><div className="grid gap-5 md:grid-cols-2"><Field title={t('objective')} value={brief.objective}/><Field title={t('audience')} value={brief.audience}/><Field title={t('angle')} value={brief.angle}/><Field title={t('offer')} value={brief.offer}/></div><div className="mt-7"><h2 className="text-xl font-bold">{t('hooks')}</h2><div className="mt-3 space-y-2">{brief.hooks.map((x,i)=><div key={i} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">{i+1}. {x}</div>)}</div></div><div className="mt-7"><h2 className="text-xl font-bold">{t('concepts')}</h2><div className="mt-3 grid gap-3 md:grid-cols-3">{brief.concepts.map((x,i)=><div key={i} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4"><div className="font-bold text-violet-300">{x.title}</div><div className="mt-2 text-sm leading-6 text-zinc-400">{x.idea}</div></div>)}</div></div></div><aside className="card p-6"><h2 className="text-xl font-bold">{t('script')}</h2><pre className="mt-4 whitespace-pre-wrap font-sans text-sm leading-7 text-zinc-300">{brief.script}</pre><div className="mt-6 rounded-xl border border-violet-500/20 bg-violet-500/10 p-4 text-sm text-violet-200">{t('nextStage')}</div><button onClick={generateVariants} disabled={variantBusy} className="btn btn-primary mt-4 w-full">{variantBusy?t('generatingVariants'):t('generateVariants')}</button>{saved&&<div className="mt-4 text-xs leading-5 text-emerald-300">{t('resultSaved')}</div>}{brief.mode==='development'&&<div className="mt-3 text-xs leading-5 text-amber-300">{t('demoMode')}</div>}</aside></section>}
+  return <AppShell>
+    <div className="creative-studio-v2">
+      <div className="creative-studio-head">
+        <div>
+          <div className="studio-eyebrow">CREATIVE WORKFLOW</div>
+          <h1>{ar ? 'حوّل الفكرة إلى إعلان جاهز.' : 'Turn an idea into a production-ready ad.'}</h1>
+          <p>{ar ? 'ابدأ بهدف واحد، وسيب Creative OS يبني الاستراتيجية والنسخ والمشاهد والإنتاج خطوة بخطوة.' : 'Start with one objective and let Creative OS build the strategy, variants, scenes and production step by step.'}</p>
+        </div>
+        <div className="creative-stage-rail" aria-label={ar ? 'مراحل الإنشاء' : 'Creation stages'}>
+          {stages.map((label,i)=><div key={label} className={i<=stage?'creative-stage is-active':'creative-stage'}>
+            <span>{String(i+1).padStart(2,'0')}</span><b>{label}</b>
+          </div>)}
+        </div>
+      </div>
 
-    {brief&&<section className="mt-6"><div className="card p-6"><div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div><h2 className="text-2xl font-black">{t('variantsTitle')}</h2><p className="mt-2 text-sm text-zinc-500">{t('variantsSubtitle')}</p></div><button onClick={generateVariants} disabled={variantBusy} className="btn btn-ghost">{variantBusy?t('generatingVariants'):variants.length?t('regenerateVariants'):t('generateVariants')}</button></div>{variants.length>0&&<div className="mt-5 grid gap-4 lg:grid-cols-3">{variants.map(v=><button key={v.variantKey} type="button" onClick={()=>setSelectedVariant(v)} className={`rounded-2xl border p-5 text-start transition ${selectedVariant?.variantKey===v.variantKey?'border-violet-500 bg-violet-500/10':'border-zinc-800 bg-zinc-950/50 hover:border-zinc-700'}`}><div className="flex items-center justify-between gap-3"><span className="rounded-lg bg-violet-500/15 px-2.5 py-1 text-sm font-black text-violet-300">{v.variantKey}</span>{selectedVariant?.variantKey===v.variantKey&&<CheckCircle2 size={17} className="text-emerald-300"/>}</div><div className="mt-4 text-lg font-bold">{v.title}</div><div className="mt-2 text-sm leading-6 text-zinc-400">{v.angle}</div><div className="mt-4 rounded-xl border border-zinc-800 bg-black/30 p-3 text-sm font-semibold">{v.hook}</div><div className="mt-4 text-xs font-bold uppercase tracking-wider text-zinc-600">{t('headline')}</div><div className="mt-1 text-sm">{v.headline}</div><div className="mt-4 text-xs leading-5 text-zinc-500">{v.rationale}</div></button>)}</div>}{variants.length>0&&<div className="mt-5 flex flex-col gap-3 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4 md:flex-row md:items-center md:justify-between"><div><div className="font-bold text-violet-200">{t('selectedVariant')}: {selectedVariant?.variantKey} — {selectedVariant?.title}</div><div className="mt-1 text-sm text-zinc-500">{t('variantStoryboardHint')}</div></div><button onClick={makeStoryboard} disabled={storyBusy||!selectedVariant} className="btn btn-primary">{storyBusy?t('generatingStoryboard'):t('buildSelectedVariant')}</button></div>}</div></section>}
+      <section className="creative-command">
+        <div className="creative-command-label"><Sparkles size={16}/><span>{ar ? 'اكتب النتيجة التي تريدها' : 'Describe the outcome you want'}</span></div>
+        <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder={t('promptPlaceholder')}/>
+        <div className="creative-command-footer">
+          <div className="creative-quality">
+            <span>{t('qualityLabel')}</span>
+            <div>{(['fast','quality','ultra'] as const).map(q=><button key={q} type="button" onClick={()=>setQuality(q)} className={quality===q?'is-active':''}>{q==='fast'?t('qualityFast'):q==='ultra'?t('qualityUltra'):t('qualityQuality')}</button>)}</div>
+          </div>
+          <button onClick={run} disabled={busy||!prompt.trim()} className="creative-run">
+            {busy?<Loader2 size={17} className="animate-spin"/>:<Sparkles size={17}/>}
+            {busy?t('analyzing'):t('runBrief')}
+          </button>
+        </div>
+      </section>
 
-    {storyboard&&<section className="mt-8"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-2xl font-black">{t('storyboardTitle')}</h2><p className="mt-2 text-sm text-zinc-500">{t('visualStageHint')}</p></div><div className="flex flex-wrap gap-2"><button onClick={generateAll} disabled={allBusy} className="btn btn-ghost inline-flex items-center gap-2"><WandSparkles size={17}/>{allBusy?t('generatingAllVisuals'):t('generateAllVisuals')}</button><button onClick={produceAll} disabled={productionBusy} className="btn btn-primary inline-flex items-center gap-2"><Film size={17}/>{productionBusy?t('producingAll'):t('produceAll')}</button></div></div>
-      <div className="mt-4 grid gap-4 md:grid-cols-2">{storyboard.map((sc)=><article key={sc.scene} className="card overflow-hidden"><div className="p-5"><div className="flex items-center justify-between gap-3"><div className="font-bold text-violet-300">{t('scene')} {sc.scene}</div><div className="text-xs text-zinc-500">{sc.durationSeconds}{t('seconds')}</div></div><div className="mt-3 font-semibold">{sc.shot}</div><div className="mt-4 text-xs font-bold uppercase tracking-wide text-zinc-500">{t('visualPrompt')}</div><div className="mt-2 text-sm leading-6 text-zinc-300">{sc.visualPrompt}</div><div className="mt-4 text-xs font-bold uppercase tracking-wide text-zinc-500">{t('voiceover')}</div><div className="mt-2 text-sm leading-6 text-zinc-300">{sc.voiceover}</div>{sc.onScreenText&&<div className="mt-4 rounded-lg bg-zinc-950/70 p-3 text-sm">{sc.onScreenText}</div>}
-        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3"><button onClick={()=>generateScene(sc)} disabled={sceneBusy[sc.scene]} className="btn btn-ghost inline-flex items-center justify-center gap-2"><ImageIcon size={16}/>{sceneBusy[sc.scene]?t('generatingVisual'):assets[sc.scene]?t('regenerateVisual'):t('generateVisual')}</button><button onClick={()=>generateVoice(sc)} disabled={voiceBusy[sc.scene]} className="btn btn-ghost inline-flex items-center justify-center gap-2"><Mic2 size={16}/>{voiceBusy[sc.scene]?t('generatingVoice'):voices[sc.scene]?t('regenerateVoice'):t('generateVoice')}</button><button onClick={()=>generateVideo(sc)} disabled={videoBusy[sc.scene]||!assets[sc.scene]} className="btn btn-ghost inline-flex items-center justify-center gap-2"><Video size={16}/>{videoBusy[sc.scene]?t('generatingVideo'):videos[sc.scene]?t('regenerateVideo'):t('generateVideo')}</button></div>
-        {voices[sc.scene]&&<div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3"><div className="mb-2 flex items-center justify-between text-xs"><span className="text-zinc-400">{t('voiceReady')}</span><span className={voices[sc.scene].mode==='provider'?'text-emerald-300':'text-amber-300'}>{voices[sc.scene].mode==='provider'?t('providerMode'):t('developmentMode')}</span></div><audio controls src={voices[sc.scene].audioUrl} className="w-full"/></div>}
-      </div>{assets[sc.scene]&&<div className="border-t border-zinc-800 bg-black"><div className="relative overflow-hidden"><img src={assets[sc.scene].imageUrl} alt={`${t('scene')} ${sc.scene}`} className={`aspect-[2/3] w-full object-cover ${videos[sc.scene]?.mode==='development'?'motion-preview':''}`}/>{videos[sc.scene]?.status==='processing'&&<div className="absolute inset-0 flex items-center justify-center bg-black/55"><div className="flex items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-sm"><Loader2 className="animate-spin" size={16}/>{t('videoProcessing')}</div></div>}</div><div className="flex items-center justify-between gap-3 p-3 text-xs"><span className={assets[sc.scene].mode==='provider'?'text-emerald-300':'text-amber-300'}>{assets[sc.scene].mode==='provider'?t('providerVisual'):t('developmentVisual')}</span>{videos[sc.scene]?.status==='succeeded'&&<span className="inline-flex items-center gap-1 text-emerald-300"><CheckCircle2 size={14}/>{t('videoReady')}</span>}</div>{videos[sc.scene]?.videoUrl&&<video controls playsInline src={videos[sc.scene].videoUrl} className="aspect-[9/16] w-full bg-black object-cover"/>}</div>}</article>)}</div>
-      <div className="card mt-6 flex flex-col items-start justify-between gap-4 p-5 md:flex-row md:items-center"><div><div className="font-bold">{t('productionReadyTitle')}</div><div className="mt-1 text-sm text-zinc-500">{allProductionReady?t('productionReadyBody'):t('productionPendingBody')}</div></div><button onClick={assemble} className="btn btn-primary inline-flex items-center gap-2" disabled={!allProductionReady||assemblyBusy}><Film size={17}/>{assemblyBusy?t('assemblingVideo'):t('buildVideo')}</button></div>
-      {finalAsset&&finalAsset.status==='processing'&&<div className="card mt-5 p-5"><div className="flex items-center gap-2 text-violet-200"><Loader2 className="animate-spin" size={18}/><b>{t('assemblingVideo')}</b></div><div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-900"><div className="h-full bg-violet-500 transition-all" style={{width:`${Math.max(4,finalAsset.progress??4)}%`}}/></div></div>}
-      {finalAsset&&finalAsset.status!=='processing'&&<div className="card mt-5 p-5"><div className="flex items-center gap-2 text-emerald-300"><CheckCircle2 size={18}/><b>{t('finalReady')}</b></div>{finalAsset.videoUrl?<video controls playsInline src={finalAsset.videoUrl} className="mt-4 max-h-[720px] w-full rounded-2xl bg-black"/>:<div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-200">{t('manifestReady')} {finalAsset.manifestUrl&&<a className="underline" href={finalAsset.manifestUrl} target="_blank">{t('openManifest')}</a>}</div>}</div>}
-    </section>}
-  </div></AppShell>;
+      {error&&<div className="creative-error">{error}</div>}
+
+      {!brief&&<section className="creative-empty-guide">
+        <div className="empty-guide-card"><span>01</span><b>{ar?'اكتب الهدف':'Describe the goal'}</b><p>{ar?'مثلاً: إعلان Reels لعرض Recovery يستهدف عملاء الجيم.':'For example: a Reels ad for a recovery offer targeting gym-goers.'}</p></div>
+        <div className="empty-guide-card"><span>02</span><b>{ar?'اختار الجودة':'Choose quality'}</b><p>{ar?'Fast للاختبار، Balanced لمعظم الشغل، وUltra للنسخ المهمة.':'Fast for testing, Balanced for everyday work, Ultra for high-priority output.'}</p></div>
+        <div className="empty-guide-card"><span>03</span><b>{ar?'سيب النظام يكمل':'Let the system build'}</b><p>{ar?'هنبني Brief ثم A/B/C ثم Storyboard ثم أصول الإنتاج.':'We will build a brief, A/B/C variants, storyboard and production assets.'}</p></div>
+      </section>}
+
+      {brief&&<section className="creative-strategy">
+        <div className="creative-section-title">
+          <div><span className="studio-eyebrow">01 / STRATEGY</span><h2>{ar?'الاستراتيجية الإعلانية':'Creative strategy'}</h2></div>
+          <span className={brief.mode==='provider'?'mode-pill provider':'mode-pill development'}>{brief.mode==='provider'?t('providerMode'):t('developmentMode')}</span>
+        </div>
+
+        <div className="strategy-layout">
+          <div className="strategy-main">
+            <div className="strategy-facts">
+              <Field title={t('objective')} value={brief.objective}/>
+              <Field title={t('audience')} value={brief.audience}/>
+              <Field title={t('angle')} value={brief.angle}/>
+              <Field title={t('offer')} value={brief.offer}/>
+            </div>
+            <div className="strategy-block">
+              <div className="strategy-block-head"><span>{t('hooks')}</span><small>{brief.hooks.length}</small></div>
+              <div className="hook-list">{brief.hooks.map((x,i)=><div key={i} className="hook-row"><span>{String(i+1).padStart(2,'0')}</span><p>{x}</p></div>)}</div>
+            </div>
+            <div className="strategy-block">
+              <div className="strategy-block-head"><span>{t('concepts')}</span><small>{brief.concepts.length}</small></div>
+              <div className="concept-grid">{brief.concepts.map((x,i)=><article key={i}><span>0{i+1}</span><b>{x.title}</b><p>{x.idea}</p></article>)}</div>
+            </div>
+          </div>
+
+          <aside className="strategy-script">
+            <div className="strategy-block-head"><span>{t('script')}</span><small>{ar?'مسودة':'Draft'}</small></div>
+            <pre>{brief.script}</pre>
+            <div className="strategy-next">
+              <span>{ar?'الخطوة التالية':'Next step'}</span>
+              <b>{ar?'اختبار 3 زوايا إعلانية مختلفة':'Test three distinct creative angles'}</b>
+            </div>
+            <button onClick={generateVariants} disabled={variantBusy} className="creative-primary-action">
+              {variantBusy?<Loader2 size={16} className="animate-spin"/>:<WandSparkles size={16}/>}
+              {variantBusy?t('generatingVariants'):variants.length?t('regenerateVariants'):t('generateVariants')}
+            </button>
+            {saved&&<div className="save-note"><CheckCircle2 size={14}/>{t('resultSaved')}</div>}
+          </aside>
+        </div>
+      </section>}
+
+      {brief&&<section className="creative-variants">
+        <div className="creative-section-title">
+          <div><span className="studio-eyebrow">02 / VARIANTS</span><h2>{t('variantsTitle')}</h2><p>{t('variantsSubtitle')}</p></div>
+          {variants.length>0&&<button onClick={generateVariants} disabled={variantBusy} className="secondary-action">{variantBusy?t('generatingVariants'):t('regenerateVariants')}</button>}
+        </div>
+
+        {variants.length===0?<div className="variants-empty"><span>A</span><span>B</span><span>C</span><p>{ar?'ولّد ثلاث طرق مختلفة لبيع نفس الفكرة، بدل مجرد تغيير الكلمات.':'Generate three genuinely different ways to sell the same idea, not just rewritten copy.'}</p></div>:
+        <div className="variant-grid">{variants.map(v=><button key={v.variantKey} type="button" onClick={()=>setSelectedVariant(v)} className={selectedVariant?.variantKey===v.variantKey?'variant-card is-selected':'variant-card'}>
+          <div className="variant-card-top"><span>{v.variantKey}</span>{selectedVariant?.variantKey===v.variantKey&&<CheckCircle2 size={18}/>}</div>
+          <h3>{v.title}</h3>
+          <p className="variant-angle">{v.angle}</p>
+          <blockquote>{v.hook}</blockquote>
+          <div className="variant-meta"><small>{t('headline')}</small><b>{v.headline}</b></div>
+          <p className="variant-rationale">{v.rationale}</p>
+        </button>)}</div>}
+
+        {variants.length>0&&<div className="variant-confirm">
+          <div><span>{t('selectedVariant')}</span><b>{selectedVariant?.variantKey} — {selectedVariant?.title}</b><p>{t('variantStoryboardHint')}</p></div>
+          <button onClick={makeStoryboard} disabled={storyBusy||!selectedVariant} className="creative-primary-action">{storyBusy?<Loader2 size={16} className="animate-spin"/>:<Film size={16}/>} {storyBusy?t('generatingStoryboard'):t('buildSelectedVariant')}</button>
+        </div>}
+      </section>}
+
+      {storyboard&&<section className="creative-production">
+        <div className="creative-section-title">
+          <div><span className="studio-eyebrow">03 / PRODUCTION</span><h2>{t('storyboardTitle')}</h2><p>{t('visualStageHint')}</p></div>
+          <div className="production-actions"><button onClick={generateAll} disabled={allBusy} className="secondary-action"><WandSparkles size={16}/>{allBusy?t('generatingAllVisuals'):t('generateAllVisuals')}</button><button onClick={produceAll} disabled={productionBusy} className="creative-primary-action"><Film size={16}/>{productionBusy?t('producingAll'):t('produceAll')}</button></div>
+        </div>
+
+        <div className="scene-grid">{storyboard.map(sc=><article key={sc.scene} className="scene-card">
+          <div className="scene-preview">
+            {assets[sc.scene]?<>
+              <img src={assets[sc.scene].imageUrl} alt={`${t('scene')} ${sc.scene}`} className={videos[sc.scene]?.mode==='development'?'motion-preview':''}/>
+              {videos[sc.scene]?.videoUrl&&<video controls playsInline src={videos[sc.scene].videoUrl}/>}
+              {videos[sc.scene]?.status==='processing'&&<div className="scene-processing"><Loader2 className="animate-spin"/><span>{t('videoProcessing')}</span></div>}
+            </>:<div className="scene-placeholder"><ImageIcon size={26}/><span>{ar?'لم يتم إنشاء الصورة بعد':'Visual not generated yet'}</span></div>}
+            <div className="scene-number">0{sc.scene}</div>
+            <div className="scene-duration">{sc.durationSeconds}{t('seconds')}</div>
+          </div>
+          <div className="scene-body">
+            <h3>{sc.shot}</h3>
+            <div className="scene-copy"><small>{t('visualPrompt')}</small><p>{sc.visualPrompt}</p></div>
+            <div className="scene-copy"><small>{t('voiceover')}</small><p>{sc.voiceover}</p></div>
+            {sc.onScreenText&&<div className="scene-onscreen">{sc.onScreenText}</div>}
+            <div className="scene-actions">
+              <button onClick={()=>generateScene(sc)} disabled={sceneBusy[sc.scene]}><ImageIcon size={15}/>{sceneBusy[sc.scene]?t('generatingVisual'):assets[sc.scene]?t('regenerateVisual'):t('generateVisual')}</button>
+              <button onClick={()=>generateVoice(sc)} disabled={voiceBusy[sc.scene]}><Mic2 size={15}/>{voiceBusy[sc.scene]?t('generatingVoice'):voices[sc.scene]?t('regenerateVoice'):t('generateVoice')}</button>
+              <button onClick={()=>generateVideo(sc)} disabled={videoBusy[sc.scene]||!assets[sc.scene]}><Video size={15}/>{videoBusy[sc.scene]?t('generatingVideo'):videos[sc.scene]?t('regenerateVideo'):t('generateVideo')}</button>
+            </div>
+            {voices[sc.scene]&&<div className="scene-audio"><div><span>{t('voiceReady')}</span><b>{voices[sc.scene].mode==='provider'?t('providerMode'):t('developmentMode')}</b></div><audio controls src={voices[sc.scene].audioUrl}/></div>}
+          </div>
+        </article>)}</div>
+
+        <div className={allProductionReady?'assembly-bar is-ready':'assembly-bar'}>
+          <div><span>{allProductionReady?<CheckCircle2 size={18}/>:<Film size={18}/>}</span><div><b>{t('productionReadyTitle')}</b><p>{allProductionReady?t('productionReadyBody'):t('productionPendingBody')}</p></div></div>
+          <button onClick={assemble} disabled={!allProductionReady||assemblyBusy} className="creative-primary-action">{assemblyBusy?<Loader2 size={16} className="animate-spin"/>:<Film size={16}/>} {assemblyBusy?t('assemblingVideo'):t('buildVideo')}</button>
+        </div>
+
+        {finalAsset&&finalAsset.status==='processing'&&<div className="final-progress"><div><Loader2 className="animate-spin" size={18}/><b>{t('assemblingVideo')}</b><span>{Math.max(4,finalAsset.progress??4)}%</span></div><div><i style={{width:`${Math.max(4,finalAsset.progress??4)}%`}}/></div></div>}
+        {finalAsset&&finalAsset.status!=='processing'&&<div className="final-output"><div className="final-output-head"><CheckCircle2 size={19}/><b>{t('finalReady')}</b></div>{finalAsset.videoUrl?<video controls playsInline src={finalAsset.videoUrl}/>:<div className="manifest-output">{t('manifestReady')} {finalAsset.manifestUrl&&<a href={finalAsset.manifestUrl} target="_blank">{t('openManifest')}</a>}</div>}</div>}
+      </section>}
+    </div>
+  </AppShell>;
 }
-function Field({title,value}:{title:string;value:string}){return <div><div className="text-xs font-bold uppercase tracking-wider text-zinc-500">{title}</div><div className="mt-2 leading-7 text-zinc-200">{value}</div></div>}
+function Field({title,value}:{title:string;value:string}){return <div className="strategy-fact"><span>{title}</span><p>{value}</p></div>}
