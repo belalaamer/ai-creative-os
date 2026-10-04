@@ -52,3 +52,5 @@ jobs:
           fi
           git commit -m "chore: unpack AI Creative OS source"
           git push origin HEAD:main
+
+# retrigger after bootstrap upload
