@@ -3,12 +3,16 @@
   "name": "ai-creative-os",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-04",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
   "observability": {
     "enabled": true
-  }
+  },
+  "workers_dev": true,
+  "preview_urls": false
 }
