@@ -1,0 +1,17 @@
+{
+  "name": "ai-creative-os",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc -b --pretty false",
+    "lint": "echo 'lint config pending'",
+    "dev:web": "npm run dev --workspace=@ai-creative-os/web",
+    "build:web": "npm run build --workspace=@ai-creative-os/web"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
