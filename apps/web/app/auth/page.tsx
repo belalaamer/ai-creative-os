@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { useLanguage } from '@/lib/i18n';
@@ -14,10 +14,8 @@ function safeNextPath(value: string | null) {
 
 export default function AuthPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
   const { t } = useLanguage();
-  const nextPath = safeNextPath(searchParams.get('next'));
 
   const [mode, setMode] = useState<'login' | 'signup'>('signup');
   const [name, setName] = useState('');
@@ -33,6 +31,7 @@ export default function AuthPage() {
 
     try {
       if (mode === 'signup') {
+        const nextPath = typeof window !== 'undefined' ? safeNextPath(new URLSearchParams(window.location.search).get('next')) : null;
         const redirectTarget = nextPath || '/onboarding';
         const emailRedirectTo =
           typeof window !== 'undefined'
@@ -64,6 +63,7 @@ export default function AuthPage() {
           .select('onboarding_completed')
           .single();
 
+        const nextPath = typeof window !== 'undefined' ? safeNextPath(new URLSearchParams(window.location.search).get('next')) : null;
         router.push(nextPath || (profile?.onboarding_completed ? '/dashboard' : '/onboarding'));
       }
     } catch (err) {
