@@ -19,6 +19,7 @@ import { useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import { LanguageToggle } from '@/components/language-toggle';
 import { WorkspaceSwitcher } from '@/components/workspace-switcher';
+import { useLanguage } from '@/lib/i18n';
 
 type Props = {
   children: React.ReactNode;
@@ -26,20 +27,22 @@ type Props = {
   credits?: number;
 };
 
-const nav = [
-  { href: '/dashboard', label: 'الرئيسية', icon: Home },
-  { href: '/creative', label: 'الاستوديو', icon: WandSparkles },
-  { href: '/projects', label: 'المشاريع', icon: FolderOpen },
-  { href: '/brand', label: 'Brand Brain', icon: BrainCircuit },
-  { href: '/usage', label: 'الاستخدام', icon: BarChart3 },
-  { href: '/settings', label: 'الإعدادات', icon: Settings2 },
-];
-
 export function AppShell({ children, brandName, credits = 0 }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [collapsed, setCollapsed] = useState(false);
+  const { locale } = useLanguage();
+  const ar = locale === 'ar';
+
+  const nav = [
+    { href: '/dashboard', label: ar ? 'الرئيسية' : 'Home', icon: Home },
+    { href: '/creative', label: ar ? 'الاستوديو' : 'Studio', icon: WandSparkles },
+    { href: '/projects', label: ar ? 'المشاريع' : 'Projects', icon: FolderOpen },
+    { href: '/brand', label: 'Brand Brain', icon: BrainCircuit },
+    { href: '/usage', label: ar ? 'الاستخدام' : 'Usage', icon: BarChart3 },
+    { href: '/settings', label: ar ? 'الإعدادات' : 'Settings', icon: Settings2 },
+  ];
 
   return (
     <div className="studio-shell">
@@ -61,7 +64,7 @@ export function AppShell({ children, brandName, credits = 0 }: Props) {
               <Link key={href} href={href} className={active ? 'studio-nav-item is-active' : 'studio-nav-item'}>
                 <Icon size={18} />
                 {!collapsed && <span>{label}</span>}
-                {!collapsed && active && <ChevronLeft size={15} className="ms-auto opacity-60" />}
+                {!collapsed && active && <ChevronLeft size={15} className="nav-chevron ms-auto opacity-60" />}
               </Link>
             );
           })}
@@ -71,14 +74,14 @@ export function AppShell({ children, brandName, credits = 0 }: Props) {
           {!collapsed && (
             <div className="credit-chip">
               <span><Zap size={15} /> Credits</span>
-              <strong>{credits.toLocaleString()}</strong>
+              <strong>{credits.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en-US')}</strong>
             </div>
           )}
           <button className="studio-nav-item w-full" onClick={async () => { await supabase.auth.signOut(); router.push('/auth'); }}>
             <LogOut size={18} />
-            {!collapsed && <span>تسجيل الخروج</span>}
+            {!collapsed && <span>{ar ? 'تسجيل الخروج' : 'Sign out'}</span>}
           </button>
-          <button className="studio-collapse" onClick={() => setCollapsed((v) => !v)} aria-label="Toggle sidebar">
+          <button className="studio-collapse" onClick={() => setCollapsed((v) => !v)} aria-label={ar ? 'طي القائمة الجانبية' : 'Toggle sidebar'}>
             <PanelLeftClose size={17} className={collapsed ? 'rotate-180' : ''} />
           </button>
         </div>
@@ -88,7 +91,7 @@ export function AppShell({ children, brandName, credits = 0 }: Props) {
         <header className="studio-topbar">
           <div className="min-w-0">
             <div className="studio-eyebrow">AI CREATIVE OPERATING SYSTEM</div>
-            <div className="truncate text-sm text-zinc-400">{brandName || 'مساحة العمل'}</div>
+            <div className="truncate text-sm text-zinc-400">{brandName || (ar ? 'مساحة العمل' : 'Workspace')}</div>
           </div>
           <div className="flex items-center gap-2">
             <WorkspaceSwitcher />
