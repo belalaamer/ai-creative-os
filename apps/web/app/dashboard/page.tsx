@@ -1,18 +1,125 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
-import { Video, Image as ImageIcon, FileText, Mic2, Globe2, Sparkles, LogOut, FolderOpen, BarChart3, BrainCircuit, Settings2 } from 'lucide-react';
-import { useLanguage } from '@/lib/i18n';
-import { LanguageToggle } from '@/components/language-toggle';
-import { WorkspaceSwitcher } from '@/components/workspace-switcher';
 
-export default function DashboardPage(){
-  const router=useRouter(); const supabase=createClient(); const {t}=useLanguage();
-  const [brand,setBrand]=useState<any>(null); const [wallet,setWallet]=useState(0); const [prompt,setPrompt]=useState(''); const [loading,setLoading]=useState(true);
-  useEffect(()=>{(async()=>{const {data:{user}}=await supabase.auth.getUser();if(!user){router.replace('/auth');return;}const {data:activeOrg}=await supabase.rpc('get_active_organization');const membership=activeOrg?{organization_id:String(activeOrg)}:null;if(!membership){router.replace('/onboarding');return;}const [{data:b},{data:w}]=await Promise.all([supabase.from('brands').select('*').eq('organization_id',membership.organization_id).order('created_at',{ascending:true}).limit(1).maybeSingle(),supabase.from('credit_wallets').select('balance').eq('organization_id',membership.organization_id).single()]);if(!b){router.replace('/onboarding');return;}setBrand(b);setWallet(w?.balance??0);setLoading(false);})()},[]);
-  const actions=[[Video,t('videoAd'),t('dashboardVideoDesc')],[ImageIcon,t('socialDesign'),t('dashboardSocialDesc')],[FileText,t('adCopy'),t('dashboardCopyDesc')],[Mic2,t('voiceOver'),t('dashboardVoiceDesc')],[Globe2,t('landingPage'),t('dashboardLandingDesc')]];
-  function run(){if(!prompt.trim())return;sessionStorage.setItem('creative-prompt',prompt.trim());router.push('/creative');}
-  if(loading)return <main className="p-10 text-center text-zinc-400">{t('loading')}</main>;
-  return <main className="min-h-screen px-5 py-6"><div className="mx-auto max-w-7xl"><header className="flex items-center justify-between gap-4"><div><div className="flex items-center gap-2 text-xl font-black"><Sparkles size={20}/> AI Creative OS</div><div className="mt-1 text-sm text-zinc-500">{brand?.name}</div></div><div className="flex items-center gap-2"><button className="btn btn-ghost inline-flex items-center gap-2" onClick={()=>router.push('/brand')}><BrainCircuit size={17}/><span className="hidden sm:inline">{t('brandBrain')}</span></button><button className="btn btn-ghost inline-flex items-center gap-2" onClick={()=>router.push('/projects')}><FolderOpen size={17}/><span className="hidden sm:inline">{t('projectsTitle')}</span></button><button className="btn btn-ghost inline-flex items-center gap-2" onClick={()=>router.push('/usage')}><BarChart3 size={17}/><span className="hidden sm:inline">{t('usageTitle')}</span></button><button className="btn btn-ghost inline-flex items-center gap-2" onClick={()=>router.push('/settings')}><Settings2 size={17}/><span className="hidden sm:inline">{t('settingsTitle')}</span></button><WorkspaceSwitcher/><LanguageToggle/><div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm">{wallet} {t('credits')}</div><button className="btn btn-ghost" onClick={async()=>{await supabase.auth.signOut();router.push('/auth')}}><LogOut size={17}/></button></div></header><section className="mx-auto mt-20 max-w-4xl text-center"><h1 className="text-4xl font-black md:text-6xl">{t('whatCreate')}</h1><p className="mt-4 text-zinc-500">{t('plannerHint')}</p><div className="card mt-8 p-3"><textarea className="min-h-36 w-full resize-none bg-transparent p-4 text-lg outline-none" value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder={t('promptPlaceholder')}/><div className="flex justify-end"><button className="btn btn-primary" onClick={run} disabled={!prompt.trim()}>{t('startExecution')}</button></div></div></section><section className="mt-12 grid gap-4 md:grid-cols-5">{actions.map(([Icon,title,desc])=>{const I=Icon as typeof Video;return <button key={String(title)} onClick={()=>{setPrompt(String(title));window.scrollTo({top:0,behavior:'smooth'})}} className="card p-5 text-start transition hover:-translate-y-1 hover:border-violet-500/40"><I className="mb-5 text-violet-300"/><div className="font-bold">{String(title)}</div><div className="mt-2 text-sm leading-6 text-zinc-500">{String(desc)}</div></button>})}</section></div></main>;
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ArrowLeft,
+  Film,
+  Image as ImageIcon,
+  Layers3,
+  MessageSquareText,
+  Mic2,
+  Plus,
+  Sparkles,
+  WandSparkles,
+  Zap,
+} from 'lucide-react';
+import { createClient } from '@/lib/supabase';
+import { AppShell } from '@/components/app-shell';
+
+type Tool = {
+  title: string;
+  subtitle: string;
+  icon: typeof Film;
+  prompt: string;
+  tag: string;
+  featured?: boolean;
+};
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+  const [brand, setBrand] = useState<any>(null);
+  const [wallet, setWallet] = useState(0);
+  const [prompt, setPrompt] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.replace('/auth'); return; }
+
+      const { data: activeOrg } = await supabase.rpc('get_active_organization');
+      if (!activeOrg) { router.replace('/onboarding'); return; }
+
+      const [{ data: b }, { data: w }] = await Promise.all([
+        supabase.from('brands').select('*').eq('organization_id', String(activeOrg)).order('created_at', { ascending: true }).limit(1).maybeSingle(),
+        supabase.from('credit_wallets').select('balance').eq('organization_id', String(activeOrg)).single(),
+      ]);
+
+      if (!b) { router.replace('/onboarding'); return; }
+      setBrand(b);
+      setWallet(w?.balance ?? 0);
+      setLoading(false);
+    })();
+  }, [router, supabase]);
+
+  const tools: Tool[] = [
+    { title: 'إنشاء إعلان فيديو', subtitle: 'من الفكرة إلى السكريبت والمشاهد والفيديو', icon: Film, prompt: 'اعمل لي إعلان فيديو احترافي', tag: 'الأكثر استخدامًا', featured: true },
+    { title: 'تصميم إعلان', subtitle: 'كرياتيف ثابت بهوية البراند', icon: ImageIcon, prompt: 'اعمل لي تصميم إعلان سوشيال ميديا', tag: 'Images' },
+    { title: 'كتابة إعلان', subtitle: 'Hooks وPrimary Text وCTA', icon: MessageSquareText, prompt: 'اكتب لي 3 نسخ إعلانية مختلفة', tag: 'Copy' },
+    { title: 'تعليق صوتي', subtitle: 'Voiceover عربي أو إنجليزي', icon: Mic2, prompt: 'جهز لي تعليق صوتي للإعلان', tag: 'Voice' },
+    { title: 'حملة كاملة', subtitle: 'Brief + Variants + Storyboard + Assets', icon: Layers3, prompt: 'ابنِ لي حملة إعلانية كاملة', tag: 'Campaign' },
+  ];
+
+  function launch(value?: string) {
+    const finalPrompt = (value ?? prompt).trim();
+    if (!finalPrompt) return;
+    sessionStorage.setItem('creative-prompt', finalPrompt);
+    router.push('/creative');
+  }
+
+  if (loading) return <main className="studio-loading"><Sparkles className="animate-pulse"/><span>جاري تجهيز الاستوديو...</span></main>;
+
+  return (
+    <AppShell brandName={brand?.name} credits={wallet}>
+      <section className="studio-hero">
+        <div>
+          <div className="studio-eyebrow">CREATIVE STUDIO</div>
+          <h1>إيه اللي عايز تصنعه النهارده؟</h1>
+          <p>ابدأ بهدفك، وسيستخدم Creative OS بيانات البراند لبناء أفضل Workflow تلقائيًا.</p>
+        </div>
+        <button className="new-project-btn" onClick={() => router.push('/creative')}><Plus size={17}/> مشروع جديد</button>
+      </section>
+
+      <section className="prompt-stage">
+        <div className="prompt-glow" />
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="مثال: اعمل إعلان Reels لعرض Recovery يستهدف الناس اللي بتتمرن جيم، Tone سريع وقوي..."
+        />
+        <div className="prompt-stage-footer">
+          <div className="prompt-hints"><span><Zap size={14}/> Brand Brain متصل</span><span>Quality: Balanced</span></div>
+          <button onClick={() => launch()} disabled={!prompt.trim()}><Sparkles size={17}/> ابدأ الإنشاء <ArrowLeft size={16}/></button>
+        </div>
+      </section>
+
+      <section className="studio-section">
+        <div className="studio-section-head">
+          <div><span className="studio-eyebrow">QUICK START</span><h2>ابدأ بأداة</h2></div>
+          <button onClick={() => router.push('/projects')}>عرض كل المشاريع <ArrowLeft size={15}/></button>
+        </div>
+
+        <div className="studio-tools-grid">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            return (
+              <button key={tool.title} onClick={() => launch(tool.prompt)} className={tool.featured ? 'studio-tool-card is-featured' : 'studio-tool-card'}>
+                <div className="studio-tool-top"><div className="studio-tool-icon"><Icon size={22}/></div><span>{tool.tag}</span></div>
+                <div className="mt-auto"><h3>{tool.title}</h3><p>{tool.subtitle}</p></div>
+                <div className="studio-tool-action">ابدأ الآن <ArrowLeft size={15}/></div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="insight-strip">
+        <div className="insight-icon"><WandSparkles size={20}/></div>
+        <div><span>اقتراح ذكي</span><strong>جرّب 3 زوايا إعلانية مختلفة قبل إنتاج الفيديو النهائي.</strong></div>
+        <button onClick={() => launch('اعمل لي 3 زوايا إعلانية مختلفة للحملة')}>جرّب الآن</button>
+      </section>
+    </AppShell>
+  );
 }
