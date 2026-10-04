@@ -9,7 +9,11 @@
     "typecheck": "tsc --noEmit",
     "build:cf": "opennextjs-cloudflare build",
     "deploy:cf": "wrangler deploy",
-    "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview"
+    "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:deploy:only": "wrangler deploy"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
@@ -26,7 +30,7 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
-    "@opennextjs/cloudflare": "^1.14.8",
-    "wrangler": "^4.43.0"
+    "@opennextjs/cloudflare": "latest",
+    "wrangler": "latest"
   }
 }
