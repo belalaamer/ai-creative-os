@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root { color-scheme: dark; }
-html { direction: rtl; scroll-behavior: smooth; }
+html { scroll-behavior: smooth; }
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -145,7 +145,7 @@ a { color: inherit; text-decoration: none; }
 .studio-section-head h2 { margin:7px 0 0; font-size:24px; letter-spacing:-.03em; }
 .studio-section-head button { border:0; background:transparent; color:#777984; display:flex; gap:6px; align-items:center; font-size:11px; }
 .studio-tools-grid { margin-top:16px; display:grid; grid-template-columns:repeat(5,1fr); gap:11px; }
-.studio-tool-card { text-align:right; min-height:235px; padding:17px; display:flex; flex-direction:column; border:1px solid #24262e; border-radius:18px; background:#0f1014; color:white; transition:.2s ease; }
+.studio-tool-card { text-align:start; min-height:235px; padding:17px; display:flex; flex-direction:column; border:1px solid #24262e; border-radius:18px; background:#0f1014; color:white; transition:.2s ease; }
 .studio-tool-card:hover { transform:translateY(-3px); border-color:#343741; background:#121319; }
 .studio-tool-card.is-featured { background:radial-gradient(circle at 30% 0%,rgba(124,58,237,.17),transparent 50%),#101116; border-color:#373244; }
 .studio-tool-top { display:flex; justify-content:space-between; align-items:center; }
@@ -199,3 +199,33 @@ a { color: inherit; text-decoration: none; }
   .studio-tools-grid { grid-template-columns:1fr; }
   .studio-tool-card { min-height:180px; }
 }
+
+html[dir='ltr'] .directional-icon,
+html[dir='ltr'] .nav-chevron { transform: rotate(180deg); }
+html[dir='rtl'] .directional-icon,
+html[dir='rtl'] .nav-chevron { transform: none; }
+
+html[dir='ltr'] .studio-sidebar { border-left:0; border-right:1px solid #202229; }
+html[dir='rtl'] .studio-sidebar { border-left:1px solid #202229; border-right:0; }
+html[dir='ltr'] .product-mini-sidebar { border-left:0; border-right:1px solid #1f2128; }
+html[dir='rtl'] .product-mini-sidebar { border-left:1px solid #1f2128; border-right:0; }
+html[dir='ltr'] .workflow-step { border-left:0; border-right:1px solid #262831; }
+html[dir='ltr'] .workflow-step:last-child { border-right:0; }
+html[dir='rtl'] .workflow-step { border-left:1px solid #262831; border-right:0; }
+html[dir='rtl'] .workflow-step:last-child { border-left:0; }
+html[dir='ltr'] .floating-card.one { left:auto; right:-18px; }
+html[dir='ltr'] .floating-card.two { right:auto; left:-12px; }
+
+html[dir='ltr'] .studio-nav-item,
+html[dir='ltr'] .studio-tool-card,
+html[dir='ltr'] .marketing-tool,
+html[dir='ltr'] .prompt-stage textarea,
+html[dir='ltr'] .input,
+html[dir='ltr'] .field { text-align:left; }
+
+html[dir='rtl'] .studio-nav-item,
+html[dir='rtl'] .studio-tool-card,
+html[dir='rtl'] .marketing-tool,
+html[dir='rtl'] .prompt-stage textarea,
+html[dir='rtl'] .input,
+html[dir='rtl'] .field { text-align:right; }
