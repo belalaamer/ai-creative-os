@@ -26,3 +26,5 @@ We are not using OpenAdKit or Sobe Tudo as the primary V2 base. They may still b
 - Studio preview URL reserved in frontend config: https://ai-creative-os-v2-studio.pages.dev
 
 The Ads Center is deployed from this branch through Cloudflare Pages. Its API points to the planned V2 backend endpoint until the backend service is provisioned.
+
+Cloudflare Pages production branch: `v2-nalarin-studio`.
