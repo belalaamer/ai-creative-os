@@ -617,3 +617,14 @@ html[dir='rtl'] .field { text-align:right; }
   .studio-topbar > div:first-of-type { flex:1; min-width:0; }
   .studio-topbar > div:last-child { flex:0 0 auto; }
 }
+
+
+.workspace-switcher { min-height:38px; max-width:230px; display:flex; align-items:center; gap:7px; border:1px solid #252731; border-radius:10px; background:#111217; color:#a7a8b0; padding:0 10px; }
+.workspace-switcher select { min-width:0; max-width:180px; border:0; outline:0; background:transparent; color:#d4d4d8; font-size:10px; }
+.workspace-switcher option { background:#111217; color:#f4f4f5; }
+@media(max-width:640px){
+  .workspace-switcher { max-width:150px; padding-inline:8px; }
+  .workspace-switcher select { max-width:112px; }
+  .studio-topbar .btn.btn-ghost span { display:none; }
+  .studio-topbar .btn.btn-ghost { width:38px; height:38px; padding:0; justify-content:center; }
+}
