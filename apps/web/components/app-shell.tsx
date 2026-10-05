@@ -27,7 +27,7 @@ type Props = {
   credits?: number;
 };
 
-export function AppShell({ children, brandName, credits = 0 }: Props) {
+export function AppShell({ children, brandName, credits }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -71,7 +71,7 @@ export function AppShell({ children, brandName, credits = 0 }: Props) {
         </nav>
 
         <div className="studio-sidebar-bottom">
-          {!collapsed && (
+          {!collapsed && typeof credits === 'number' && (
             <div className="credit-chip">
               <span><Zap size={15} /> Credits</span>
               <strong>{credits.toLocaleString(locale === 'ar' ? 'ar-EG' : 'en-US')}</strong>
