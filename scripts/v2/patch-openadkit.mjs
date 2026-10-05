@@ -24,7 +24,12 @@ if (fs.existsSync(metaHtmlPath)) {
 const pkgPath=path.join(root,"package.json");
 const pkg=JSON.parse(fs.readFileSync(pkgPath,"utf8"));
 pkg.name="@ai-creative-os/v2";
-pkg.dependencies.next = "^14.2.35";
+pkg.dependencies = {
+  ...(pkg.dependencies || {}),
+  next: "^14.2.35",
+  "@anthropic-ai/sdk": "^0.70.0",
+  "@vercel/blob": "^0.27.0"
+};
 pkg.private=true;
 fs.writeFileSync(pkgPath,JSON.stringify(pkg,null,2)+"\n");
 
