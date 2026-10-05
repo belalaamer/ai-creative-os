@@ -121,8 +121,8 @@ async function graphAll(path: string, token: string, params: Record<string, stri
   let next: string | null = `${graphBase()}/${path.replace(/^\//, '')}?${new URLSearchParams({ ...params, access_token: token, limit: '100' }).toString()}`;
   let pages = 0;
   while (next && pages < 10) {
-    const res = await fetch(next, { cache: 'no-store' });
-    const json = await res.json();
+    const res: Response = await fetch(next, { cache: 'no-store' });
+    const json: any = await res.json();
     if (!res.ok || json?.error) throw new Error(json?.error?.message || `Meta API ${res.status}`);
     rows.push(...(json.data || []));
     next = json.paging?.next || null;
