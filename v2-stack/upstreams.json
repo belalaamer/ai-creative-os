@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "selected": true,
+  "nalarin": {
+    "repo": "https://github.com/masgant99/nalarin-agentic-ads-studio.git",
+    "commit": "c500cc5a132142ff3de815bf6d15c50d490ea522",
+    "license": "MIT",
+    "role": "Paid media operations: Meta/Google/TikTok OAuth, campaign management, analytics, competitor research, optimization guardrails"
+  },
+  "studio271": {
+    "repo": "https://github.com/two-71/studio.git",
+    "commit": "e2f24f414f0cc6401e269dd98c7f6e07be8d0d98",
+    "license": "MIT",
+    "role": "AI image/video generation surface, gallery, realtime jobs, references, image-to-video"
+  }
+}
