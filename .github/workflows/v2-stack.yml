@@ -1,0 +1,45 @@
+name: V2 ready-stack validation
+
+on:
+  push:
+    branches: [v2-ready-stack]
+  workflow_dispatch:
+
+jobs:
+  openadkit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Materialize pinned upstreams
+        run: bash scripts/v2/bootstrap.sh
+      - name: Install OpenAdKit
+        working-directory: .v2/openadkit
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck OpenAdKit
+        working-directory: .v2/openadkit
+        run: npm run typecheck
+      - name: Build OpenAdKit
+        working-directory: .v2/openadkit
+        run: npm run build
+
+  meta-launcher:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Materialize pinned upstreams
+        run: bash scripts/v2/bootstrap.sh
+      - name: Install Sobe Tudo
+        working-directory: .v2/sobe-tudo
+        run: npm ci --no-audit --no-fund
+      - name: Syntax check Meta launcher
+        working-directory: .v2/sobe-tudo
+        run: |
+          node --check lib/meta.js
+          for f in api/*.js; do node --check "$f"; done
