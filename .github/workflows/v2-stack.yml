@@ -13,7 +13,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - name: Materialize pinned upstreams
         run: bash scripts/v2/bootstrap.sh
       - name: Install OpenAdKit
