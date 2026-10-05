@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: 22
       - name: Materialize pinned upstreams
-        run: bash scripts/v2-stack/bootstrap.sh
+        run: bash scripts/v2-stack/prepare.sh
       - name: Install Nalarin frontend
         working-directory: .v2-stack/nalarin/frontend
         run: npm install --no-audit --no-fund
@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Materialize pinned upstreams
-        run: bash scripts/v2-stack/bootstrap.sh
+        run: bash scripts/v2-stack/prepare.sh
       - name: Install Nalarin backend
         working-directory: .v2-stack/nalarin/backend
         run: pip install -r requirements.txt
@@ -46,10 +46,28 @@ jobs:
         with:
           bun-version: latest
       - name: Materialize pinned upstreams
-        run: bash scripts/v2-stack/bootstrap.sh
+        run: bash scripts/v2-stack/prepare.sh
       - name: Install Studio
         working-directory: .v2-stack/studio271
         run: bun install
       - name: Typecheck Studio
         working-directory: .v2-stack/studio271
         run: bun run typecheck
+      - name: Build Studio demo
+        working-directory: .v2-stack/studio271/apps/demo
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/studio
+          BETTER_AUTH_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
+          BETTER_AUTH_URL: http://localhost:3030
+          TRIGGER_SECRET_KEY: tr_dev_ci
+          TRIGGER_PROJECT_REF: proj_ci
+          RUNPOD_API_KEY: ci
+          RUNPOD_ENDPOINT_ID: ci
+          RUNPOD_VIDEO_ENDPOINT_ID: ci
+          R2_ACCOUNT_ID: ci
+          R2_ACCESS_KEY_ID: ci
+          R2_SECRET_ACCESS_KEY: ci
+          R2_BUCKET: ci
+          R2_PUBLIC_URL: https://example.com
+          NEXT_PUBLIC_ADS_URL: http://localhost:3024
+        run: bun run build
