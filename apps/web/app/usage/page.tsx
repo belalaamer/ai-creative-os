@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useLanguage } from '@/lib/i18n';
 import { AppShell } from '@/components/app-shell';
-import { Coins, DollarSign, Gauge, TrendingUp, ShieldCheck, Activity, RefreshCw, Route } from 'lucide-react';
+import { Coins, DollarSign, Gauge, TrendingUp, ShieldCheck, Activity, RefreshCw, Route, Sparkles } from 'lucide-react';
 
 type Row={id:string;provider_code:string;model_code:string;provider_cost_usd:number;billable_credits:number;revenue_usd:number;gross_margin_usd:number;gross_margin_pct:number|null;created_at:string};
 type Health={provider_code:string;status:string;success_rate:number|null;avg_latency_ms:number|null;consecutive_failures:number;updated_at:string};
@@ -28,31 +28,43 @@ export default function UsagePage(){
   } finally {setLoading(false)}})()},[supabase]);
   const totals=rows.reduce((a,r)=>({cost:a.cost+Number(r.provider_cost_usd||0),credits:a.credits+Number(r.billable_credits||0),revenue:a.revenue+Number(r.revenue_usd||0),margin:a.margin+Number(r.gross_margin_usd||0)}),{cost:0,credits:0,revenue:0,margin:0});
   const marginPct=totals.revenue>0?(totals.margin/totals.revenue)*100:0;
+  const healthyCount=health.filter(h=>h.status==='healthy').length;
+
   return <AppShell credits={balance}>
-    <section>
-      <h1 className="text-4xl font-black">{t('usageTitle')}</h1><p className="mt-2 text-zinc-500">{t('usageSubtitle')}</p>
-      <div className="mt-6 grid gap-4 md:grid-cols-4">
-        <Card icon={<Coins size={18}/>} title={t('currentBalance')} value={balance.toLocaleString(locale==='ar'?'ar-EG':'en-US')}/>
-        <Card icon={<DollarSign size={18}/>} title={t('providerCost')} value={`$${totals.cost.toFixed(4)}`}/>
-        <Card icon={<TrendingUp size={18}/>} title={t('estimatedRevenue')} value={`$${totals.revenue.toFixed(4)}`}/>
-        <Card icon={<Gauge size={18}/>} title={t('grossMargin')} value={`${marginPct.toFixed(1)}%`}/>
+    <section className="usage-head">
+      <div><div className="studio-eyebrow">USAGE & ECONOMICS</div><h1>{t('usageTitle')}</h1><p>{t('usageSubtitle')}</p></div>
+      <div className="usage-balance"><Coins size={18}/><span>{t('currentBalance')}</span><strong>{balance.toLocaleString(locale==='ar'?'ar-EG':'en-US')}</strong></div>
+    </section>
+
+    <section className="usage-metrics">
+      <Metric icon={<DollarSign size={18}/>} title={t('providerCost')} value={`$${totals.cost.toFixed(4)}`} note={ar?'إجمالي تكلفة المزودين':'Total provider spend'}/>
+      <Metric icon={<TrendingUp size={18}/>} title={t('estimatedRevenue')} value={`$${totals.revenue.toFixed(4)}`} note={ar?'القيمة التقديرية للـCredits':'Estimated credit value'}/>
+      <Metric icon={<Gauge size={18}/>} title={t('grossMargin')} value={`${marginPct.toFixed(1)}%`} note={ar?'الهامش المتوقع':'Estimated margin'}/>
+      <Metric icon={<ShieldCheck size={18}/>} title={t('providerHealth')} value={`${healthyCount}/${health.length||0}`} note={ar?'مزودين بحالة سليمة':'Providers currently healthy'}/>
+    </section>
+
+    <section className="usage-section">
+      <div className="creative-section-title"><div><span className="studio-eyebrow">RELIABILITY</span><h2>{t('resilienceTitle')}</h2><p>{t('resilienceSubtitle')}</p></div></div>
+      <div className="usage-reliability">
+        <Metric icon={<ShieldCheck size={17}/>} title={t('dailyBudget')} value={policy?`$${Number(policy.max_provider_cost_per_day_usd).toFixed(2)}`:'—'} compact/>
+        <Metric icon={<Activity size={17}/>} title={t('dailySpent')} value={`$${spentToday.toFixed(4)}`} compact/>
+        <Metric icon={<RefreshCw size={17}/>} title={t('retries')} value={policy?.max_retries_per_provider??'—'} compact/>
+        <Metric icon={<Route size={17}/>} title={t('failovers')} value={policy?.max_failovers??'—'} compact/>
       </div>
 
-      <div className="mt-8"><h2 className="text-2xl font-black">{t('resilienceTitle')}</h2><p className="mt-1 text-zinc-500">{t('resilienceSubtitle')}</p>
-        <div className="mt-4 grid gap-4 md:grid-cols-4">
-          <Card icon={<ShieldCheck size={18}/>} title={t('dailyBudget')} value={policy?`$${Number(policy.max_provider_cost_per_day_usd).toFixed(2)}`:'—'}/>
-          <Card icon={<Activity size={18}/>} title={t('dailySpent')} value={`$${spentToday.toFixed(4)}`}/>
-          <Card icon={<RefreshCw size={18}/>} title={t('retries')} value={policy?.max_retries_per_provider??'—'}/>
-          <Card icon={<Route size={18}/>} title={t('failovers')} value={policy?.max_failovers??'—'}/>
-        </div>
-        <div className="card mt-4 p-5">
-          <div className="flex items-center justify-between gap-4"><div><div className="text-sm font-bold">{t('moderationMode')}</div><div className="mt-1 text-zinc-500">{policy?.moderation_mode??'—'}</div></div><div className="text-end"><div className="text-sm font-bold">{t('providerHealth')}</div><div className="mt-1 text-zinc-500">{health.length||0}</div></div></div>
-          {health.length>0&&<div className="mt-4 grid gap-3 md:grid-cols-2">{health.map(h=><div key={h.provider_code} className="rounded-xl border border-zinc-800 p-4"><div className="flex items-center justify-between"><span className="font-bold">{h.provider_code}</span><span className="text-sm text-zinc-400">{t(h.status)}</span></div><div className="mt-2 text-xs text-zinc-500">{ar?'الأخطاء المتتالية':'Consecutive failures'}: {h.consecutive_failures}{h.avg_latency_ms?` · ${h.avg_latency_ms} ms`:''}</div></div>)}</div>}
-        </div>
+      <div className="provider-health-panel">
+        <div className="provider-health-head"><div><span>{t('moderationMode')}</span><b>{policy?.moderation_mode??'—'}</b></div><div><span>{t('providerHealth')}</span><b>{health.length||0}</b></div></div>
+        {health.length>0?<div className="provider-health-grid">{health.map(h=><article key={h.provider_code} className={h.status==='healthy'?'provider-health-card is-ok':'provider-health-card'}>
+          <div><span className="provider-status-dot"/><b>{h.provider_code}</b><small>{t(h.status)}</small></div>
+          <p>{ar?'الأخطاء المتتالية':'Consecutive failures'}: {h.consecutive_failures}{h.avg_latency_ms?` · ${h.avg_latency_ms} ms`:''}</p>
+        </article>)}</div>:<div className="usage-empty"><Sparkles size={18}/><span>{ar?'لا توجد بيانات صحة مزودين حتى الآن':'No provider health data yet'}</span></div>}
       </div>
+    </section>
 
-      <div className="card mt-6 overflow-hidden"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead className="border-b border-zinc-800 text-zinc-500"><tr><th className="p-4 text-start">{t('provider')}</th><th className="p-4 text-start">{t('model')}</th><th className="p-4 text-end">{t('creditsUsed')}</th><th className="p-4 text-end">{t('providerCost')}</th><th className="p-4 text-end">{t('estimatedRevenue')}</th><th className="p-4 text-end">{t('grossMargin')}</th></tr></thead><tbody>{rows.map(r=><tr key={r.id} className="border-b border-zinc-900"><td className="p-4">{r.provider_code}</td><td className="p-4 text-zinc-400">{r.model_code}</td><td className="p-4 text-end">{r.billable_credits}</td><td className="p-4 text-end">${Number(r.provider_cost_usd).toFixed(4)}</td><td className="p-4 text-end">${Number(r.revenue_usd).toFixed(4)}</td><td className="p-4 text-end">{r.gross_margin_pct==null?'—':`${Number(r.gross_margin_pct).toFixed(1)}%`}</td></tr>)}</tbody></table>{!loading&&!rows.length&&<div className="p-8 text-center text-zinc-500">{t('noUsageYet')}</div>}</div></div>
+    <section className="usage-section">
+      <div className="creative-section-title"><div><span className="studio-eyebrow">COST LEDGER</span><h2>{ar?'سجل التكلفة والاستهلاك':'Cost & usage ledger'}</h2></div></div>
+      <div className="usage-table-wrap"><table className="usage-table"><thead><tr><th>{t('provider')}</th><th>{t('model')}</th><th>{t('creditsUsed')}</th><th>{t('providerCost')}</th><th>{t('estimatedRevenue')}</th><th>{t('grossMargin')}</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.provider_code}</td><td>{r.model_code}</td><td>{r.billable_credits}</td><td>${Number(r.provider_cost_usd).toFixed(4)}</td><td>${Number(r.revenue_usd).toFixed(4)}</td><td>{r.gross_margin_pct==null?'—':`${Number(r.gross_margin_pct).toFixed(1)}%`}</td></tr>)}</tbody></table>{!loading&&!rows.length&&<div className="usage-empty"><Sparkles size={18}/><span>{t('noUsageYet')}</span></div>}</div>
     </section>
   </AppShell>;
 }
-function Card({icon,title,value}:{icon:React.ReactNode;title:string;value:string|number}){return <div className="card p-5"><div className="flex items-center gap-2 text-violet-300">{icon}<span className="text-xs font-bold uppercase tracking-wider">{title}</span></div><div className="mt-3 text-3xl font-black">{value}</div></div>}
+function Metric({icon,title,value,note,compact=false}:{icon:React.ReactNode;title:string;value:string|number;note?:string;compact?:boolean}){return <div className={compact?'usage-metric is-compact':'usage-metric'}><div className="usage-metric-icon">{icon}</div><div><span>{title}</span><strong>{value}</strong>{note&&<p>{note}</p>}</div></div>}
