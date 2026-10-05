@@ -63,6 +63,15 @@ if (fs.existsSync(layoutPath)) {
   fs.writeFileSync(layoutPath, layout);
 }
 
+
+// Next 14.2.35 tightened useSearchParams() typing during production builds.
+const brandPagePath = path.join(root,"app","brand","page.tsx");
+if (fs.existsSync(brandPagePath)) {
+  let brandPage = fs.readFileSync(brandPagePath,"utf8");
+  brandPage = brandPage.replace('const isFirst = params.get("first") === "1";','const isFirst = params?.get("first") === "1";');
+  fs.writeFileSync(brandPagePath,brandPage);
+}
+
 const pagePath=path.join(root,"app","page.tsx");
 if (fs.existsSync(pagePath)) {
   let page=fs.readFileSync(pagePath,"utf8");
