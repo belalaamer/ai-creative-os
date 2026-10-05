@@ -28,6 +28,17 @@ function walk(dir) {
 
 walk(root);
 
+const metaHtmlPath = path.join(root,"public","meta-launch.html");
+if (fs.existsSync(metaHtmlPath)) {
+  let html = fs.readFileSync(metaHtmlPath,"utf8");
+  html = html
+    .replaceAll("Sobe Tudo","Creative OS · Meta Ads")
+    .replaceAll("Campanhas no Facebook com IA","Meta Ads Campaign Launcher")
+    .replaceAll("Subir Campanha","Launch Campaign")
+    .replaceAll("Conexões","Connections");
+  fs.writeFileSync(metaHtmlPath, html);
+}
+
 const pkgPath=path.join(root,"package.json");
 const pkg=JSON.parse(fs.readFileSync(pkgPath,"utf8"));
 pkg.name="@ai-creative-os/v2";
@@ -37,9 +48,9 @@ fs.writeFileSync(pkgPath,JSON.stringify(pkg,null,2)+"\n");
 const pagePath=path.join(root,"app","page.tsx");
 if (fs.existsSync(pagePath)) {
   let page=fs.readFileSync(pagePath,"utf8");
-  if (!page.includes('href: "/meta-live"')) {
+  if (!page.includes('href: "/meta-launch.html"')) {
     const marker='const tiles: { href: string; label: string; sub: string; icon: any; accent?: boolean }[] = [';
-    page=page.replace(marker, marker+'\n  { href: "/meta-live", label: "Meta Ads Live", sub: "Connect, review and launch paid campaigns from the same workspace", icon: Rocket, accent: true },');
+    page=page.replace(marker, marker+'\n  { href: "/meta-launch.html", label: "Meta Ads Live", sub: "Connect, review and launch paid campaigns from the same workspace", icon: Rocket, accent: true },');
     fs.writeFileSync(pagePath,page);
   }
 }
