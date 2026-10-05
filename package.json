@@ -9,7 +9,10 @@
     "typecheck": "tsc -b --pretty false",
     "lint": "echo 'lint config pending'",
     "dev:web": "npm run dev --workspace=@ai-creative-os/web",
-    "build:web": "npm run build --workspace=@ai-creative-os/web"
+    "build:web": "npm run build --workspace=@ai-creative-os/web",
+    "v2:prepare": "bash scripts/v2-stack/prepare.sh",
+    "v2:run": "bash scripts/v2-stack/run.sh",
+    "v2:stop": "bash scripts/v2-stack/stop.sh"
   },
   "devDependencies": {
     "typescript": "^5.7.2"
