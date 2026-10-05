@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "core": {
+    "name": "OpenAdKit",
+    "repo": "https://github.com/IamRamgarhia/OpenAdKit-Open-Source-AI-Marketing-Tool.git",
+    "commit": "22786a9ca2f73bb07c0d4b2e7e4954049e0e6d02",
+    "license": "MIT",
+    "role": "Primary V2 UI, Brand Brain, 18 generators, 11 optimizers, provider abstraction"
+  },
+  "metaLauncher": {
+    "name": "Sobe Tudo",
+    "repo": "https://github.com/themagicmkt/sobe-tudo.git",
+    "commit": "30ce40d148c7c00c017a37059a4ed14213ede8fb",
+    "license": "MIT",
+    "role": "Reference implementation for Meta campaign creation and bulk creative launch"
+  },
+  "metaOps": {
+    "name": "Meta Ads Kit",
+    "repo": "https://github.com/TheMattBerman/meta-ads-kit.git",
+    "commit": "main",
+    "license": "MIT",
+    "role": "Reference rules for fatigue, winners, bleeders, budget optimization and monitoring"
+  }
+}
