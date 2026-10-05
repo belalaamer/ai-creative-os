@@ -45,8 +45,8 @@ const dictionaries: Record<Locale, Dictionary> = {
 type LanguageContextValue = { locale: Locale; dir: 'rtl' | 'ltr'; t: (key: string) => string; toggle: () => void; setLocale: (locale: Locale) => void };
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('ar');
+export function LanguageProvider({ children, initialLocale = 'ar' }: { children: React.ReactNode; initialLocale?: Locale }) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
   useEffect(() => {
     const stored = window.localStorage.getItem('ai-creative-os-locale') as Locale | null;
     if (stored === 'ar' || stored === 'en') setLocaleState(stored);
@@ -55,6 +55,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = locale;
     document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
     window.localStorage.setItem('ai-creative-os-locale', locale);
+    document.cookie = `ai-creative-os-locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`;
   }, [locale]);
   const value = useMemo(() => ({
     locale,
