@@ -18,3 +18,11 @@ This is the selected V2 direction after deeper comparison.
 Nalarin is the paid-media operations backend/reference. two-71 is the media generation surface. Existing Creative OS remains the identity/tenant/billing layer.
 
 We are not using OpenAdKit or Sobe Tudo as the primary V2 base. They may still be mined selectively for isolated ideas where useful.
+
+
+## Preview infrastructure
+
+- Ads Center (Nalarin frontend): https://ai-creative-os-v2-ads.pages.dev
+- Studio preview URL reserved in frontend config: https://ai-creative-os-v2-studio.pages.dev
+
+The Ads Center is deployed from this branch through Cloudflare Pages. Its API points to the planned V2 backend endpoint until the backend service is provisioned.
