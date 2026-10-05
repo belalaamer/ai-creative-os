@@ -33,7 +33,7 @@ export default function ProjectDetailPage(){
   const totalCredits=generations.reduce((n,g)=>n+Number(g.credits_charged||0),0);
   const icon=(mime:string|null,type:string)=>mime?.startsWith('image/')?<FileImage size={18}/>:mime?.startsWith('audio/')?<FileAudio size={18}/>:mime?.startsWith('video/')?<FileVideo size={18}/>:type.includes('video')?<FileVideo size={18}/>:<Sparkles size={18}/>;
 
-  return <AppShell credits={Math.max(0,totalCredits)}>
+  return <AppShell>
     {loading?<div className="text-zinc-500">{t('loading')}</div>:project&&<>
       <section className="project-detail-head">
         <div>
