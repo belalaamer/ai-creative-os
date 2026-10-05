@@ -1,0 +1,55 @@
+name: V2 Nalarin + Studio validation
+
+on:
+  push:
+    branches: [v2-nalarin-studio]
+  workflow_dispatch:
+
+jobs:
+  nalarin-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Materialize pinned upstreams
+        run: bash scripts/v2-stack/bootstrap.sh
+      - name: Install Nalarin frontend
+        working-directory: .v2-stack/nalarin/frontend
+        run: npm install --no-audit --no-fund
+      - name: Build Nalarin frontend
+        working-directory: .v2-stack/nalarin/frontend
+        run: npm run build
+
+  nalarin-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Materialize pinned upstreams
+        run: bash scripts/v2-stack/bootstrap.sh
+      - name: Install Nalarin backend
+        working-directory: .v2-stack/nalarin/backend
+        run: pip install -r requirements.txt
+      - name: Compile Nalarin backend
+        working-directory: .v2-stack/nalarin/backend
+        run: python -m compileall app
+
+  studio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Materialize pinned upstreams
+        run: bash scripts/v2-stack/bootstrap.sh
+      - name: Install Studio
+        working-directory: .v2-stack/studio271
+        run: bun install
+      - name: Typecheck Studio
+        working-directory: .v2-stack/studio271
+        run: bun run typecheck
