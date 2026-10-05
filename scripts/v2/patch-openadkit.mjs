@@ -7,26 +7,8 @@ if (!root || !fs.existsSync(root)) {
   process.exit(1);
 }
 
-const skip = new Set(["LICENSE","NOTICE.md","README.md","SECURITY.md","CODE_OF_CONDUCT.md","CONTRIBUTING.md"]);
-const allowed = new Set([".ts",".tsx",".js",".mjs",".cjs",".json",".css",".html",".svg",".txt",".webmanifest"]);
-
-function walk(dir) {
-  for (const entry of fs.readdirSync(dir,{withFileTypes:true})) {
-    if (entry.name === ".git" || entry.name === "node_modules" || entry.name === ".next") continue;
-    const full=path.join(dir,entry.name);
-    if (entry.isDirectory()) { walk(full); continue; }
-    if (skip.has(entry.name) || !allowed.has(path.extname(entry.name))) continue;
-    let text;
-    try { text=fs.readFileSync(full,"utf8"); } catch { continue; }
-    text=text
-      .replaceAll("OpenAdKit","Creative OS")
-      .replaceAll("openadkit","creative-os")
-      .replaceAll("AdForge","Creative OS");
-    fs.writeFileSync(full,text);
-  }
-}
-
-walk(root);
+// Keep upstream source intact. Broad string replacement can corrupt TypeScript
+// identifiers and object keys; white-label only the files we explicitly own below.
 
 const metaHtmlPath = path.join(root,"public","meta-launch.html");
 if (fs.existsSync(metaHtmlPath)) {
@@ -42,8 +24,16 @@ if (fs.existsSync(metaHtmlPath)) {
 const pkgPath=path.join(root,"package.json");
 const pkg=JSON.parse(fs.readFileSync(pkgPath,"utf8"));
 pkg.name="@ai-creative-os/v2";
+pkg.dependencies.next = "^14.2.35";
 pkg.private=true;
 fs.writeFileSync(pkgPath,JSON.stringify(pkg,null,2)+"\n");
+
+const layoutPath=path.join(root,"app","layout.tsx");
+if (fs.existsSync(layoutPath)) {
+  let layout = fs.readFileSync(layoutPath,"utf8");
+  layout = layout.replaceAll("OpenAdKit — Open Source AI Marketing Tool","Creative OS — AI Marketing Studio");
+  fs.writeFileSync(layoutPath, layout);
+}
 
 const pagePath=path.join(root,"app","page.tsx");
 if (fs.existsSync(pagePath)) {
