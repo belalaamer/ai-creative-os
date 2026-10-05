@@ -32,6 +32,7 @@ export function AppShell({ children, brandName, credits }: Props) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { locale } = useLanguage();
   const ar = locale === 'ar';
 
@@ -45,7 +46,7 @@ export function AppShell({ children, brandName, credits }: Props) {
   ];
 
   return (
-    <div className="studio-shell">
+    <div className={mobileOpen ? 'studio-shell mobile-nav-open' : 'studio-shell'}>
       <aside className={collapsed ? 'studio-sidebar is-collapsed' : 'studio-sidebar'}>
         <div className="studio-brand">
           <div className="studio-brand-mark"><Sparkles size={18} /></div>
@@ -61,7 +62,7 @@ export function AppShell({ children, brandName, credits }: Props) {
           {nav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
             return (
-              <Link key={href} href={href} className={active ? 'studio-nav-item is-active' : 'studio-nav-item'}>
+              <Link key={href} href={href} onClick={()=>setMobileOpen(false)} className={active ? 'studio-nav-item is-active' : 'studio-nav-item'}>
                 <Icon size={18} />
                 {!collapsed && <span>{label}</span>}
                 {!collapsed && active && <ChevronLeft size={15} className="nav-chevron ms-auto opacity-60" />}
@@ -89,6 +90,7 @@ export function AppShell({ children, brandName, credits }: Props) {
 
       <div className="studio-main">
         <header className="studio-topbar">
+          <button className="mobile-nav-toggle" onClick={()=>setMobileOpen(v=>!v)} aria-label={ar?'فتح القائمة':'Open navigation'}><PanelLeftClose size={18}/></button>
           <div className="min-w-0">
             <div className="studio-eyebrow">AI CREATIVE OPERATING SYSTEM</div>
             <div className="truncate text-sm text-zinc-400">{brandName || (ar ? 'مساحة العمل' : 'Workspace')}</div>
@@ -98,6 +100,7 @@ export function AppShell({ children, brandName, credits }: Props) {
             <LanguageToggle />
           </div>
         </header>
+        {mobileOpen&&<button className="mobile-nav-backdrop" aria-label={ar?'إغلاق القائمة':'Close navigation'} onClick={()=>setMobileOpen(false)}/>}
         <div className="studio-content">{children}</div>
       </div>
     </div>
