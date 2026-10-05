@@ -65,6 +65,42 @@ if (fs.existsSync(layoutPath)) {
 
 
 // Next 14.2.35 tightened useSearchParams() typing during production builds.
+
+const next15Pages = [
+  {
+    file: path.join(root,"app","learn","[concept]","page.tsx"),
+    from: 'export default function Page({ params }: { params: { concept: string } }) {\n  return <ConceptClient concept={params.concept} />;\n}',
+    to: 'export default async function Page({ params }: { params: Promise<{ concept: string }> }) {\n  const { concept } = await params;\n  return <ConceptClient concept={concept} />;\n}'
+  },
+  {
+    file: path.join(root,"app","learn","courses","[course]","page.tsx"),
+    from: 'export default function Page({ params }: { params: { course: string } }) {\n  return <CourseClient course={params.course} />;\n}',
+    to: 'export default async function Page({ params }: { params: Promise<{ course: string }> }) {\n  const { course } = await params;\n  return <CourseClient course={course} />;\n}'
+  },
+  {
+    file: path.join(root,"app","learn","courses","[course]","[lesson]","page.tsx"),
+    from: 'export default function Page({ params }: { params: { course: string; lesson: string } }) {\n  return <LessonClient course={params.course} lesson={params.lesson} />;\n}',
+    to: 'export default async function Page({ params }: { params: Promise<{ course: string; lesson: string }> }) {\n  const { course, lesson } = await params;\n  return <LessonClient course={course} lesson={lesson} />;\n}'
+  },
+  {
+    file: path.join(root,"app","platforms","[platform]","page.tsx"),
+    from: 'export default function Page({ params }: { params: { platform: string } }) {\n  return <PlatformClient platform={params.platform} />;\n}',
+    to: 'export default async function Page({ params }: { params: Promise<{ platform: string }> }) {\n  const { platform } = await params;\n  return <PlatformClient platform={platform} />;\n}'
+  }
+];
+for (const item of next15Pages) {
+  if (!fs.existsSync(item.file)) continue;
+  const original = fs.readFileSync(item.file,"utf8");
+  fs.writeFileSync(item.file, original.replace(item.from,item.to));
+}
+
+const nextConfigPath = path.join(root,"next.config.mjs");
+if (fs.existsSync(nextConfigPath)) {
+  let config = fs.readFileSync(nextConfigPath,"utf8");
+  config = config.replace('experimental: { typedRoutes: false },','typedRoutes: false,');
+  fs.writeFileSync(nextConfigPath, config);
+}
+
 const brandPagePath = path.join(root,"app","brand","page.tsx");
 if (fs.existsSync(brandPagePath)) {
   let brandPage = fs.readFileSync(brandPagePath,"utf8");
