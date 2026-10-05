@@ -1,20 +1,84 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { useLanguage } from '@/lib/i18n';
-import { LanguageToggle } from '@/components/language-toggle';
-import { ArrowLeft, Coins, FileAudio, FileImage, FileVideo, Sparkles } from 'lucide-react';
+import { AppShell } from '@/components/app-shell';
+import { Coins, FileAudio, FileImage, FileVideo, Sparkles, WandSparkles, Clock3 } from 'lucide-react';
 
 type Generation={id:string;kind:string;status:string;provider_code:string|null;model_code:string|null;credits_charged:number;created_at:string;response:any};
 type Asset={id:string;generation_id:string;asset_type:string;storage_path:string;mime_type:string|null;metadata:any;signedUrl?:string};
 
 export default function ProjectDetailPage(){
-  const params=useParams<{id:string}>(); const router=useRouter(); const supabase=useMemo(()=>createClient(),[]); const {t,locale}=useLanguage();
+  const params=useParams<{id:string}>(); const router=useRouter(); const supabase=useMemo(()=>createClient(),[]); const {t,locale}=useLanguage(); const ar=locale==='ar';
   const [project,setProject]=useState<any>(null); const [variants,setVariants]=useState<any[]>([]); const [generations,setGenerations]=useState<Generation[]>([]); const [assets,setAssets]=useState<Asset[]>([]); const [jobs,setJobs]=useState<any[]>([]); const [loading,setLoading]=useState(true);
-  useEffect(()=>{(async()=>{const {data:{user}}=await supabase.auth.getUser();if(!user){router.replace('/auth');return;}const {data:p,error:pErr}=await supabase.from('projects').select('*').eq('id',params.id).single();if(pErr||!p){router.replace('/projects');return;}const [{data:g},{data:j},{data:v}]=await Promise.all([supabase.from('generations').select('id,kind,status,provider_code,model_code,credits_charged,created_at,response').eq('project_id',params.id).order('created_at',{ascending:false}),supabase.from('media_jobs').select('id,kind,scene_no,status,provider_code,model_code,created_at,output').eq('project_id',params.id).order('created_at',{ascending:false}),supabase.from('campaign_variants').select('variant_key,title,angle,hook,headline,cta,rationale').eq('project_id',params.id).order('variant_key',{ascending:true})]);const gens=(g??[]) as Generation[];let assetRows:Asset[]=[];if(gens.length){const {data:a}=await supabase.from('generation_assets').select('*').in('generation_id',gens.map(x=>x.id)).order('created_at',{ascending:false});assetRows=(a??[]) as Asset[];assetRows=await Promise.all(assetRows.map(async a=>{const {data}=await supabase.storage.from('generation-assets').createSignedUrl(a.storage_path,60*60);return {...a,signedUrl:data?.signedUrl};}));}setProject(p);setVariants(v??[]);setGenerations(gens);setAssets(assetRows);setJobs(j??[]);setLoading(false);})()},[params.id,router,supabase]);
+
+  useEffect(()=>{(async()=>{
+    const {data:{user}}=await supabase.auth.getUser();if(!user){router.replace('/auth');return;}
+    const {data:p,error:pErr}=await supabase.from('projects').select('*').eq('id',params.id).single();if(pErr||!p){router.replace('/projects');return;}
+    const [{data:g},{data:j},{data:v}]=await Promise.all([
+      supabase.from('generations').select('id,kind,status,provider_code,model_code,credits_charged,created_at,response').eq('project_id',params.id).order('created_at',{ascending:false}),
+      supabase.from('media_jobs').select('id,kind,scene_no,status,provider_code,model_code,created_at,output').eq('project_id',params.id).order('created_at',{ascending:false}),
+      supabase.from('campaign_variants').select('variant_key,title,angle,hook,headline,cta,rationale').eq('project_id',params.id).order('variant_key',{ascending:true})
+    ]);
+    const gens=(g??[]) as Generation[]; let assetRows:Asset[]=[];
+    if(gens.length){
+      const {data:a}=await supabase.from('generation_assets').select('*').in('generation_id',gens.map(x=>x.id)).order('created_at',{ascending:false});
+      assetRows=(a??[]) as Asset[];
+      assetRows=await Promise.all(assetRows.map(async a=>{const {data}=await supabase.storage.from('generation-assets').createSignedUrl(a.storage_path,60*60);return {...a,signedUrl:data?.signedUrl};}));
+    }
+    setProject(p);setVariants(v??[]);setGenerations(gens);setAssets(assetRows);setJobs(j??[]);setLoading(false);
+  })()},[params.id,router,supabase]);
+
   const totalCredits=generations.reduce((n,g)=>n+Number(g.credits_charged||0),0);
   const icon=(mime:string|null,type:string)=>mime?.startsWith('image/')?<FileImage size={18}/>:mime?.startsWith('audio/')?<FileAudio size={18}/>:mime?.startsWith('video/')?<FileVideo size={18}/>:type.includes('video')?<FileVideo size={18}/>:<Sparkles size={18}/>;
-  return <main className="min-h-screen px-5 py-7"><div className="mx-auto max-w-6xl"><header className="flex items-center justify-between gap-3"><Link href="/projects" className="btn btn-ghost inline-flex items-center gap-2"><ArrowLeft size={16}/>{t('projectsTitle')}</Link><LanguageToggle/></header>{loading?<div className="mt-10 text-zinc-500">{t('loading')}</div>:project&&<><section className="mt-12"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="text-sm text-violet-300">{t('projectDetail')}</div><h1 className="mt-2 text-3xl font-black md:text-5xl">{project.name}</h1><p className="mt-3 max-w-3xl text-zinc-500">{project.brief?.request}</p></div><div className="card flex items-center gap-3 px-5 py-4"><Coins className="text-amber-300"/><div><div className="text-xs text-zinc-500">{t('creditsUsed')}</div><div className="text-xl font-black">{totalCredits}</div></div></div></div></section>{variants.length>0&&<section className="mt-8"><h2 className="text-xl font-black">{t('variantsTitle')}</h2><div className="mt-4 grid gap-4 md:grid-cols-3">{variants.map(v=><div key={v.variant_key} className="card p-5"><div className="flex items-center justify-between gap-3"><span className="rounded-lg bg-violet-500/15 px-2.5 py-1 text-sm font-black text-violet-300">{v.variant_key}</span><span className="text-xs text-zinc-600">{v.cta}</span></div><div className="mt-4 text-lg font-bold">{v.title}</div><div className="mt-2 text-sm leading-6 text-zinc-400">{v.angle}</div><div className="mt-4 rounded-xl bg-black/30 p-3 text-sm font-semibold">{v.hook}</div><div className="mt-3 text-sm text-zinc-300">{v.headline}</div><div className="mt-3 text-xs leading-5 text-zinc-500">{v.rationale}</div></div>)}</div></section>}<section className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_.9fr]"><div><h2 className="text-xl font-black">{t('projectAssets')}</h2><div className="mt-4 grid gap-4 sm:grid-cols-2">{assets.length===0?<div className="card p-5 text-zinc-500">{t('noAssets')}</div>:assets.map(a=><div key={a.id} className="card overflow-hidden"><div className="flex items-center gap-2 p-3 text-sm text-zinc-300">{icon(a.mime_type,a.asset_type)}<span>{a.asset_type}</span></div>{a.signedUrl&&a.mime_type?.startsWith('image/')&&<img src={a.signedUrl} className="aspect-[2/3] w-full bg-black object-cover" alt="asset"/>}{a.signedUrl&&a.mime_type?.startsWith('audio/')&&<div className="p-4"><audio controls className="w-full" src={a.signedUrl}/></div>}{a.signedUrl&&a.mime_type?.startsWith('video/')&&<video controls playsInline className="aspect-[9/16] w-full bg-black object-cover" src={a.signedUrl}/>}</div>)}</div></div><div><h2 className="text-xl font-black">{t('generationHistory')}</h2><div className="mt-4 space-y-3">{generations.map(g=><div key={g.id} className="card p-4"><div className="flex items-center justify-between gap-3"><div className="font-semibold">{g.kind}</div><div className="text-xs text-zinc-500">{new Intl.DateTimeFormat(locale==='ar'?'ar-EG':'en-US',{dateStyle:'short',timeStyle:'short'}).format(new Date(g.created_at))}</div></div><div className="mt-2 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-zinc-900 px-2 py-1">{g.status}</span><span className="rounded-full bg-zinc-900 px-2 py-1">{g.provider_code??'-'}</span><span className="rounded-full bg-zinc-900 px-2 py-1">{Number(g.credits_charged||0)} {t('credits')}</span></div></div>)}{jobs.some(j=>j.status==='processing')&&<div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-4 text-sm text-violet-200">{t('processingJobs')}</div>}</div></div></section></>}</div></main>;
+
+  return <AppShell credits={Math.max(0,totalCredits)}>
+    {loading?<div className="text-zinc-500">{t('loading')}</div>:project&&<>
+      <section className="project-detail-head">
+        <div>
+          <div className="studio-eyebrow">PROJECT</div>
+          <h1>{project.name}</h1>
+          <p>{project.brief?.request||t('projectNoBrief')}</p>
+        </div>
+        <div className="project-stat"><Coins size={18}/><span>{t('creditsUsed')}</span><strong>{totalCredits}</strong></div>
+      </section>
+
+      {variants.length>0&&<section className="project-section">
+        <div className="creative-section-title"><div><span className="studio-eyebrow">CREATIVE DIRECTIONS</span><h2>{t('variantsTitle')}</h2></div></div>
+        <div className="variant-grid">{variants.map(v=><article key={v.variant_key} className="variant-card">
+          <div className="variant-card-top"><span>{v.variant_key}</span><small>{v.cta}</small></div>
+          <h3>{v.title}</h3><p className="variant-angle">{v.angle}</p><blockquote>{v.hook}</blockquote>
+          <div className="variant-meta"><small>{t('headline')}</small><b>{v.headline}</b></div>
+          <p className="variant-rationale">{v.rationale}</p>
+        </article>)}</div>
+      </section>}
+
+      <section className="project-section project-detail-grid">
+        <div>
+          <div className="creative-section-title"><div><span className="studio-eyebrow">ASSETS</span><h2>{t('projectAssets')}</h2></div></div>
+          {assets.length===0?<div className="project-empty"><Sparkles size={20}/><span>{t('noAssets')}</span></div>:<div className="project-assets-grid">{assets.map(a=><article key={a.id} className="project-asset-card">
+            <div className="project-asset-head">{icon(a.mime_type,a.asset_type)}<span>{a.asset_type}</span></div>
+            {a.signedUrl&&a.mime_type?.startsWith('image/')&&<img src={a.signedUrl} alt="asset"/>}
+            {a.signedUrl&&a.mime_type?.startsWith('audio/')&&<div className="p-4"><audio controls className="w-full" src={a.signedUrl}/></div>}
+            {a.signedUrl&&a.mime_type?.startsWith('video/')&&<video controls playsInline src={a.signedUrl}/>}
+          </article>)}</div>}
+        </div>
+
+        <aside>
+          <div className="creative-section-title"><div><span className="studio-eyebrow">HISTORY</span><h2>{t('generationHistory')}</h2></div></div>
+          <div className="generation-timeline">{generations.map(g=><div key={g.id} className="generation-row">
+            <div className="generation-dot"/>
+            <div className="generation-main">
+              <div className="generation-top"><b>{g.kind}</b><span><Clock3 size={12}/>{new Intl.DateTimeFormat(locale==='ar'?'ar-EG':'en-US',{dateStyle:'short',timeStyle:'short'}).format(new Date(g.created_at))}</span></div>
+              <div className="generation-meta"><span>{g.status}</span><span>{g.provider_code??'-'}</span><span>{Number(g.credits_charged||0)} {t('credits')}</span></div>
+            </div>
+          </div>)}
+          {generations.length===0&&<div className="project-empty"><Sparkles size={20}/><span>{ar?'لا يوجد سجل توليد بعد':'No generation history yet'}</span></div>}
+          {jobs.some(j=>j.status==='processing')&&<div className="processing-note"><WandSparkles size={15}/>{t('processingJobs')}</div>}
+          </div>
+        </aside>
+      </section>
+    </>}
+  </AppShell>;
 }
