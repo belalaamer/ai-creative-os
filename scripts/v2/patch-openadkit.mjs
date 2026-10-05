@@ -26,7 +26,7 @@ const pkg=JSON.parse(fs.readFileSync(pkgPath,"utf8"));
 pkg.name="@ai-creative-os/v2";
 pkg.dependencies = {
   ...(pkg.dependencies || {}),
-  next: "^14.2.35",
+  next: "^15.5.27",
   "@anthropic-ai/sdk": "^0.70.0",
   "@vercel/blob": "^0.27.0"
 };
