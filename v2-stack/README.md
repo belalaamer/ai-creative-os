@@ -28,3 +28,8 @@ We are not using OpenAdKit or Sobe Tudo as the primary V2 base. They may still b
 The Ads Center is deployed from this branch through Cloudflare Pages. Its API points to the planned V2 backend endpoint until the backend service is provisioned.
 
 Cloudflare Pages production branch: `v2-nalarin-studio`.
+
+
+## Browseable preview mode
+
+The Cloudflare Pages Ads Center preview can run with `VITE_DEMO_MODE=true`. This bypasses only the preview login gate and returns safe empty dashboard payloads so the ready-made product shell can be reviewed before the FastAPI/Postgres service and paid-media credentials are connected. A visible preview banner is shown; no ad spend or provider mutation is possible in this mode.
