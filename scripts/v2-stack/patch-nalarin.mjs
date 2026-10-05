@@ -72,6 +72,15 @@ if(fs.existsSync(authContext)){
             let payload = {};
             if (pathName.endsWith('/overview')) payload = { campaigns: [], errors: {} };
             else if (pathName.endsWith('/dashboard/stats')) payload = { brands_count: 0, products_count: 0, generated_ads_count: 0, templates_count: 0, campaigns_count: 0 };
+            else if (pathName.endsWith('/optimization/status')) payload = {
+                auto_enabled: false,
+                kill_switch_active: false,
+                allowed_actions: [],
+                max_budget_micros: null,
+                max_daily_spend_micros: null,
+                operating_hours: { start_wib: null, end_wib: null }
+            };
+            else if (pathName.endsWith('/optimization/evaluate')) payload = { ok: false, mode: 'manual', reason: 'preview-mode' };
             else if (pathName.includes('/optimization')) payload = { recommendations: [], actions: [] };
             return new Response(JSON.stringify(payload), { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
