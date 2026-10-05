@@ -31,7 +31,30 @@ pkg.dependencies = {
   "@vercel/blob": "^0.27.0"
 };
 pkg.private=true;
+pkg.devDependencies = {
+  ...(pkg.devDependencies || {}),
+  "@opennextjs/cloudflare": "latest",
+  "wrangler": "latest"
+};
+pkg.scripts = {
+  ...(pkg.scripts || {}),
+  "cf:build": "opennextjs-cloudflare build",
+  "cf:deploy": "opennextjs-cloudflare build && wrangler deploy"
+};
 fs.writeFileSync(pkgPath,JSON.stringify(pkg,null,2)+"\n");
+
+fs.writeFileSync(path.join(root,"open-next.config.ts"), `import { defineCloudflareConfig } from "@opennextjs/cloudflare";
+export default defineCloudflareConfig();
+`);
+fs.writeFileSync(path.join(root,"wrangler.jsonc"), JSON.stringify({
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  name: "ai-creative-os-v2",
+  main: ".open-next/worker.js",
+  compatibility_date: "2026-10-05",
+  compatibility_flags: ["nodejs_compat"],
+  assets: { directory: ".open-next/assets", binding: "ASSETS" },
+  observability: { enabled: true }
+}, null, 2)+"\n");
 
 const layoutPath=path.join(root,"app","layout.tsx");
 if (fs.existsSync(layoutPath)) {
