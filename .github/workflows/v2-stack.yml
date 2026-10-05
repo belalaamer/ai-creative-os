@@ -24,6 +24,9 @@ jobs:
       - name: Build OpenAdKit
         working-directory: .v2/openadkit
         run: npm run build
+      - name: Build OpenAdKit for Cloudflare
+        working-directory: .v2/openadkit
+        run: npm run cf:build
 
   meta-launcher:
     runs-on: ubuntu-latest
