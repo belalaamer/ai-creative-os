@@ -43,3 +43,5 @@ Both preview shells are now provisioned on Cloudflare Pages:
 - Creative Studio: https://ai-creative-os-v2-studio.pages.dev
 
 The Ads Center runs in an explicitly labelled preview mode until the FastAPI/Postgres backend is connected. The Studio preview mounts the real `@two-71/studio` client shell with a preview-safe config; generation requests remain disabled until RunPod/Trigger/R2 runtime credentials are connected.
+
+Both Cloudflare preview projects use isolated build roots under `deploy/pages-*` so the Ads Center and Studio install only their own dependencies and cannot break each other through the monorepo workspace install.
