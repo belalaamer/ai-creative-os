@@ -6,3 +6,7 @@ node_modules/
 *.log
 .DS_Store
 coverage/
+
+# V2 ready-made stack worktrees and local secrets
+.v2-stack/
+v2-stack/.env
