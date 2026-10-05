@@ -11,6 +11,7 @@ import {
   LogOut,
   PanelLeftClose,
   Settings2,
+  Megaphone,
   Sparkles,
   WandSparkles,
   Zap,
@@ -41,6 +42,7 @@ export function AppShell({ children, brandName, credits }: Props) {
     { href: '/creative', label: ar ? 'الاستوديو' : 'Studio', icon: WandSparkles },
     { href: '/projects', label: ar ? 'المشاريع' : 'Projects', icon: FolderOpen },
     { href: '/brand', label: 'Brand Brain', icon: BrainCircuit },
+    { href: '/meta', label: 'Meta Ads', icon: Megaphone },
     { href: '/usage', label: ar ? 'الاستخدام' : 'Usage', icon: BarChart3 },
     { href: '/settings', label: ar ? 'الإعدادات' : 'Settings', icon: Settings2 },
   ];
