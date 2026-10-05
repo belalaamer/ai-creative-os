@@ -104,3 +104,55 @@ if(fs.existsSync(layout)){
     fs.writeFileSync(layout,shell);
   }
 }
+
+
+const appFile=path.join(root,"frontend","src","App.jsx");
+if(fs.existsSync(appFile)){
+  let app=fs.readFileSync(appFile,"utf8");
+  app=app.replace(
+    '<Route path="/overview" element={<Navigate to="/" replace />} />',
+    ''
+  );
+  app=app.replace(
+    '<Route index element={<Overview />} />',
+    '<Route index element={<Dashboard />} />\n                    <Route path="overview" element={<Overview />} />'
+  );
+  fs.writeFileSync(appFile,app);
+}
+
+if(fs.existsSync(layout)){
+  let shell=fs.readFileSync(layout,"utf8");
+  shell=shell
+    .replace("{ icon: LayoutDashboard, label: 'Overview', path: '/' },","{ icon: LayoutDashboard, label: 'Home', path: '/' },")
+    .replace("{ icon: BarChart3, label: 'Dashboard', path: '/dashboard' },","{ icon: BarChart3, label: 'Performance', path: '/overview' },");
+  fs.writeFileSync(layout,shell);
+}
+
+const dashboardFile=path.join(root,"frontend","src","pages","Dashboard.jsx");
+if(fs.existsSync(dashboardFile)){
+  let dash=fs.readFileSync(dashboardFile,"utf8");
+  if(!dash.includes("const STUDIO_URL")){
+    dash=dash.replace(
+      "const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';",
+      "const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';\nconst STUDIO_URL = import.meta.env.VITE_STUDIO_URL || '';"
+    );
+    dash=dash.replace(
+      "{/* Stats Grid */}",
+      `{STUDIO_URL && (
+                <a href={STUDIO_URL} className="mb-8 block rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 p-6 text-white shadow-lg transition-transform hover:-translate-y-0.5">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <div className="text-xs font-bold uppercase tracking-[0.18em] text-violet-100">Creative Studio</div>
+                            <h2 className="mt-2 text-2xl font-black">Generate images & videos</h2>
+                            <p className="mt-2 max-w-xl text-sm text-violet-100">Open the ready-made AI generation studio for product creatives, social ads and image-to-video.</p>
+                        </div>
+                        <Wand2 size={34} className="shrink-0" />
+                    </div>
+                </a>
+            )}
+
+            {/* Stats Grid */}`
+    );
+    fs.writeFileSync(dashboardFile,dash);
+  }
+}
