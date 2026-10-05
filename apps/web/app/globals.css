@@ -472,3 +472,34 @@ html[dir='rtl'] .field { text-align:right; }
   .project-detail-head{align-items:flex-start;flex-direction:column}
   .project-assets-grid{grid-template-columns:1fr}
 }
+
+
+/* Brand Brain */
+.brand-brain-head { display:grid; grid-template-columns:1fr auto; gap:24px; align-items:end; }
+.brand-brain-head h1 { margin:8px 0 0; font-size:clamp(36px,4vw,54px); letter-spacing:-.045em; }
+.brand-brain-head p { margin:10px 0 0; max-width:760px; color:#777984; line-height:1.75; }
+.brand-brain-stats { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid #252731; border-radius:16px; overflow:hidden; background:#0f1014; }
+.brand-brain-stats > div { min-width:100px; padding:13px 14px; border-inline-start:1px solid #23252d; }
+.brand-brain-stats > div:first-child { border-inline-start:0; }
+.brand-brain-stats span { display:block; color:#666873; font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+.brand-brain-stats strong { display:block; margin-top:5px; font-size:22px; }
+.brand-message { margin-top:16px; border:1px solid #292b33; border-radius:12px; background:#111217; color:#c7c8ce; padding:11px 13px; font-size:10px; }
+.brand-brain-grid { margin-top:28px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.brand-panel { border:1px solid #24262e; border-radius:18px; background:#0f1014; overflow:hidden; }
+.brand-panel-head { padding:16px 17px; border-bottom:1px solid #22242b; }
+.brand-panel-head h2 { margin:0; font-size:15px; }
+.brand-panel-head p { margin:5px 0 0; color:#63656f; font-size:10px; line-height:1.6; }
+.brand-panel-body { padding:15px; display:grid; gap:10px; }
+.brand-panel .btn { display:flex; align-items:center; justify-content:center; gap:7px; }
+.brand-items { display:grid; gap:7px; margin-top:3px; }
+.brand-item { min-height:42px; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid #22242b; border-radius:10px; background:#0c0d11; padding:9px 10px; color:#bfc0c6; font-size:10px; }
+.brand-item button { border:0; background:transparent; color:#5f616a; }
+.brand-item button:hover { color:#fca5a5; }
+.brand-rules-card { margin-top:12px; border:1px solid #24262e; border-radius:18px; background:#0f1014; padding:18px; }
+.brand-rules-card textarea,.brand-rules-card input { background:#0c0d11; }
+
+@media(max-width:980px){
+  .brand-brain-head{grid-template-columns:1fr}
+  .brand-brain-stats{width:100%}
+  .brand-brain-grid{grid-template-columns:1fr}
+}
