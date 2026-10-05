@@ -33,3 +33,13 @@ Cloudflare Pages production branch: `v2-nalarin-studio`.
 ## Browseable preview mode
 
 The Cloudflare Pages Ads Center preview can run with `VITE_DEMO_MODE=true`. This bypasses only the preview login gate and returns safe empty dashboard payloads so the ready-made product shell can be reviewed before the FastAPI/Postgres service and paid-media credentials are connected. A visible preview banner is shown; no ad spend or provider mutation is possible in this mode.
+
+
+## Live preview shells
+
+Both preview shells are now provisioned on Cloudflare Pages:
+
+- Ads Center: https://ai-creative-os-v2-ads.pages.dev
+- Creative Studio: https://ai-creative-os-v2-studio.pages.dev
+
+The Ads Center runs in an explicitly labelled preview mode until the FastAPI/Postgres backend is connected. The Studio preview mounts the real `@two-71/studio` client shell with a preview-safe config; generation requests remain disabled until RunPod/Trigger/R2 runtime credentials are connected.
