@@ -34,15 +34,21 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and publish Creative OS V2 FastAPI image
+      - name: Build Creative OS V2 FastAPI image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: deploy/railway-api/Dockerfile
-          push: true
+          load: true
           tags: |
             ghcr.io/belalaamer/ai-creative-os-v2-api:latest
             ghcr.io/belalaamer/ai-creative-os-v2-api:${{ github.sha }}
           labels: |
             org.opencontainers.image.source=https://github.com/belalaamer/ai-creative-os
             org.opencontainers.image.licenses=MIT
+      - name: Verify fresh database, login and restart before publishing
+        run: python tests/v2/smoke_api_container.py ghcr.io/belalaamer/ai-creative-os-v2-api:${{ github.sha }}
+      - name: Publish verified image
+        run: |
+          docker push ghcr.io/belalaamer/ai-creative-os-v2-api:${{ github.sha }}
+          docker push ghcr.io/belalaamer/ai-creative-os-v2-api:latest

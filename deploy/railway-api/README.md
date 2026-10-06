@@ -17,3 +17,5 @@ The container validates the OAuth encryption key before migrations, applies Alem
 Meta connection additionally requires `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, and `FACEBOOK_OAUTH_REDIRECT_URI` matching the callback on the deployed API and registered in the Meta developer app. The Ads Center must be rebuilt with `VITE_DEMO_MODE=false` and `VITE_API_URL=https://<api-host>/api/v1` only after API health and login are verified. Its current sample campaigns are preview data.
 
 Deployment regression checks: `python3 -m unittest discover -s tests/v2 -v`.
+
+The image workflow also runs `python tests/v2/smoke_api_container.py <image>` against a disposable PostgreSQL 16 container before publishing. It checks fresh migrations (including an encoded database password), seeded admin login, anonymous access rejection, Ads Center CORS, and a restart without duplicate users or permissions. No ad account or generation provider is used. Docker is required to run this check locally.
