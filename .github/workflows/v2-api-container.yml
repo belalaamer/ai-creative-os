@@ -5,6 +5,8 @@ on:
     branches: [v2-nalarin-studio]
     paths:
       - "deploy/railway-api/**"
+      - "deploy/vercel-api/**"
+      - "Dockerfile.vercel"
       - "scripts/v2-stack/patch-backend.py"
       - "scripts/v2-stack/smoke-api.py"
       - "tests/v2/**"
@@ -20,6 +22,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  vercel-image-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: docker/setup-buildx-action@v3
+      - name: Build Vercel container
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.vercel
+          load: true
+          tags: creative-os-vercel-api:ci
+      - name: Verify Vercel bootstrap and persistent media
+        run: |
+          python tests/v2/smoke_api_container.py creative-os-vercel-api:ci --verify-media-storage
   build:
     runs-on: ubuntu-latest
     steps:

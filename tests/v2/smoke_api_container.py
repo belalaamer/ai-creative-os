@@ -68,7 +68,7 @@ def verify_api(base, email, password):
     assert status == 200 and headers.get("Access-Control-Allow-Origin") == origin, "Ads CORS failed"
 
 
-def main(image):
+def main(image, verify_media_storage=False):
     suffix = secrets.token_hex(5)
     network, database, api = [f"creative-os-smoke-{suffix}-{name}" for name in ("net", "db", "api")]
     # Percent-encoded password deliberately exercises the Alembic URL patch.
@@ -89,6 +89,11 @@ def main(image):
                 f"ADMIN_EMAIL={email}", f"ADMIN_PASSWORD={password}",
                 "ALLOWED_ORIGINS=https://ai-creative-os-v2-ads.pages.dev",
                 "FRONTEND_URL=https://ai-creative-os-v2-ads.pages.dev", "PORT=8000",
+                # Test-only R2 configuration; the storage contract below mocks
+                # the S3 client. No real bucket or paid provider is contacted.
+                "R2_ACCOUNT_ID=smoke", "R2_ACCESS_KEY_ID=smoke",
+                "R2_SECRET_ACCESS_KEY=smoke", "R2_BUCKET_NAME=smoke",
+                "R2_PUBLIC_URL=https://media.example.com",
             ]) + "\n")
             env.chmod(0o600)
             docker("run", "-d", "--name", api, "--network", network,
@@ -113,6 +118,10 @@ def main(image):
         wait_for(ready, "API restart")
         verify_api(base_url(), email, password)
         assert counts() == before, "Restart duplicated users, roles or permissions"
+        if verify_media_storage:
+            script = Path(__file__).with_name("check_media_storage.py").read_text()
+            subprocess.run(["docker", "exec", "-i", api, "python", "-"], input=script,
+                           text=True, check=True)
         print("PASS: fresh migrations, encoded database password, admin login, auth gate, CORS, restart.")
     finally:
         for container in (api, database):
@@ -123,4 +132,6 @@ def main(image):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", help="Locally loaded Creative OS API Docker image")
-    main(parser.parse_args().image)
+    parser.add_argument("--verify-media-storage", action="store_true")
+    args = parser.parse_args()
+    main(args.image, args.verify_media_storage)
