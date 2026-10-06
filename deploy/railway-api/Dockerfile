@@ -24,7 +24,6 @@ RUN chmod +x /entrypoint.sh \
 
 ENV PYTHONUNBUFFERED=1
 ENV BRAND_NAME="Creative OS"
-ENV TRUSTED_PROXIES="*"
 
 EXPOSE 8000
 ENTRYPOINT ["/entrypoint.sh"]
