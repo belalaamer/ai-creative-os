@@ -3,6 +3,7 @@ import argparse
 import base64
 import json
 import os
+import runpy
 from pathlib import Path
 import secrets
 import subprocess
@@ -46,6 +47,8 @@ def request(base, path, *, data=None, token=None, method=None, headers=None):
 
 
 def verify_api(base, email, password):
+    contract = runpy.run_path(str(Path(__file__).resolve().parents[2] / "scripts/v2-stack/smoke-api.py"))
+    contract["verify"](base, "https://ai-creative-os-v2-ads.pages.dev", email, password)
     assert request(base, "/health")[0] == 200, "Health endpoint failed"
     assert request(base, "/api/v1/auth/me")[0] == 401, "Anonymous auth gate failed"
     status, _, login = request(base, "/api/v1/auth/login/json",

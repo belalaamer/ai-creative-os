@@ -19,3 +19,22 @@ Meta connection additionally requires `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, 
 Deployment regression checks: `python3 -m unittest discover -s tests/v2 -v`.
 
 The image workflow also runs `python tests/v2/smoke_api_container.py <image>` against a disposable PostgreSQL 16 container before publishing. It checks fresh migrations (including an encoded database password), seeded admin login, anonymous access rejection, Ads Center CORS, and a restart without duplicate users or permissions. No ad account or generation provider is used. Docker is required to run this check locally.
+
+The API image publication workflow now boots the exact container against a fresh
+PostgreSQL 16 database before publishing. It verifies Alembic migrations, seeded
+admin login, anonymous endpoint protection, allowed and rejected CORS origins,
+and database-backed dashboard reads. It repeats the check after a container
+restart to catch non-idempotent migrations or seeding.
+
+For a deployed API, set `SMOKE_EMAIL` and `SMOKE_PASSWORD` in your shell secret
+environment for a dedicated test account, then run:
+
+```sh
+python3 scripts/v2-stack/smoke-api.py --base-url https://YOUR-API-HOST
+```
+
+This creates a login session but never starts OAuth, changes campaigns, or calls
+paid generation providers. Passing this check validates the standalone API
+runtime only. It does not certify Supabase single sign-on, organization isolation,
+Meta app approval, or media generation. Keep preview mode enabled until those
+integration requirements are separately completed and verified.

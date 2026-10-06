@@ -6,6 +6,7 @@ on:
     paths:
       - "deploy/railway-api/**"
       - "scripts/v2-stack/patch-backend.py"
+      - "scripts/v2-stack/smoke-api.py"
       - "tests/v2/**"
       - ".github/workflows/v2-api-container.yml"
   workflow_dispatch:
