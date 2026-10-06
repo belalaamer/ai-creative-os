@@ -4,7 +4,7 @@ on:
   push:
     branches: [v2-nalarin-studio]
     paths:
-      - "scripts/v2-stack/**"
+      - "deploy/railway-api/**"
       - ".github/workflows/v2-api-container.yml"
   workflow_dispatch:
 
@@ -21,19 +21,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Materialize pinned Nalarin source
-        run: bash scripts/v2-stack/prepare.sh
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and publish FastAPI image
+      - name: Build and publish Creative OS V2 FastAPI image
         uses: docker/build-push-action@v6
         with:
-          context: .v2-stack/nalarin
-          file: .v2-stack/nalarin/backend/Dockerfile
+          context: .
+          file: deploy/railway-api/Dockerfile
           push: true
           tags: |
             ghcr.io/belalaamer/ai-creative-os-v2-api:latest
