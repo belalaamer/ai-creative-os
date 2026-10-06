@@ -17,13 +17,15 @@ services:
 
   ads-backend:
     build:
-      context: ../../.v2-stack/nalarin
-      dockerfile: backend/Dockerfile
+      context: ../..
+      dockerfile: deploy/railway-api/Dockerfile
     environment:
       DATABASE_URL: postgresql://ads_studio:${POSTGRES_PASSWORD:-creative_os_dev}@postgres:5432/ads_studio
       SECRET_KEY: ${SECRET_KEY}
       OAUTH_TOKEN_ENCRYPTION_KEY: ${OAUTH_TOKEN_ENCRYPTION_KEY}
       ALLOWED_ORIGINS: http://localhost:3024,http://localhost:3030
+      FRONTEND_URL: http://localhost:3024
+      FACEBOOK_OAUTH_REDIRECT_URI: ${FACEBOOK_OAUTH_REDIRECT_URI:-}
       FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
       FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
       GOOGLE_ADS_CLIENT_ID: ${GOOGLE_ADS_CLIENT_ID:-}

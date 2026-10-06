@@ -12,6 +12,9 @@ RUN git clone https://github.com/masgant99/nalarin-agentic-ads-studio.git /src \
     && cd /src \
     && git checkout "$NALARIN_COMMIT"
 
+COPY scripts/v2-stack/patch-backend.py /patch-backend.py
+RUN python /patch-backend.py /src
+
 WORKDIR /app
 COPY deploy/railway-api/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh \
