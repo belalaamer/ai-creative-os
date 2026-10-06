@@ -40,7 +40,11 @@ def request(base, path, *, data=None, token=None, method=None, headers=None):
     try:
         with urlopen(req, timeout=10) as response:
             body = response.read()
-            return response.status, response.headers, json.loads(body) if body else None
+            try:
+                payload = json.loads(body) if body else None
+            except (ValueError, UnicodeDecodeError):
+                payload = None
+            return response.status, response.headers, payload
     except HTTPError as error:
         # Do not print response bodies: auth responses can contain tokens.
         return error.code, error.headers, None
