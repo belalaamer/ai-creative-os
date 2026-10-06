@@ -103,6 +103,8 @@ def main(image, verify_media_storage=False):
             return "http://" + docker("port", api, "8000/tcp").splitlines()[0]
 
         def ready():
+            if docker("inspect", "--format", "{{.State.Running}}", api) != "true":
+                raise RuntimeError("API container stopped during startup; inspect bootstrap before publishing")
             return request(base_url(), "/health")[0] == 200
 
         def counts():

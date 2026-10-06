@@ -10,5 +10,5 @@ set -eu
 : "${R2_BUCKET_NAME:?R2_BUCKET_NAME is required}"
 : "${R2_PUBLIC_URL:?R2_PUBLIC_URL is required}"
 
-python /bootstrap.py
+python /app/creative_os_bootstrap.py
 exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-80}"
