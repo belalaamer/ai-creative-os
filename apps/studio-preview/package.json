@@ -7,7 +7,7 @@
     "build": "next build"
   },
   "dependencies": {
-    "@two-71/studio": "0.4.4",
+    "@two-71/studio": "file:./vendor/studio",
     "@tanstack/react-query": "^5.100.11",
     "@trigger.dev/react-hooks": "^4.5.4",
     "@trigger.dev/sdk": "^4.5.4",
