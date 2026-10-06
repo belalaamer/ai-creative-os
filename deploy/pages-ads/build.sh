@@ -5,6 +5,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 
 cd "$ROOT"
 bash scripts/v2-stack/prepare.sh
+node deploy/pages-ads/patch-preview-data.mjs "$ROOT/.v2-stack/nalarin"
 cd "$ROOT/.v2-stack/nalarin/frontend"
 npm install --no-audit --no-fund
 npm run build
