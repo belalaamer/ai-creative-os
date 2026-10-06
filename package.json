@@ -2,7 +2,7 @@
   "name": "ai-creative-os",
   "private": true,
   "workspaces": [
-    "apps/*",
+    "apps/web",
     "packages/*"
   ],
   "scripts": {
